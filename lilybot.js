@@ -321,6 +321,18 @@ function requestTutorial(message)
 	sendBotString("onTutorialRequest", (msg) => reply(message, msg), (msg) => message.channel.send(msg));
 }
 
+// respond with discord server invite link in private messages
+function requestInviteLink(message)
+{
+	sendBotString("onInviteLinkRequest", (msg) => message.author.send(msg));
+}
+
+// respond with github link in private messages
+function requestGithubLink(message)
+{
+	sendBotString("onGithubLinkRequest", (msg) => message.author.send(msg));
+}
+
 // map of commands
 const commands = {};
 
@@ -334,15 +346,17 @@ function registerCommand(names, f)
 	});
 }
 
-// the commands
-registerCommand(["join", "voice", "enter", "invite"], (arg, args, message) => joinVoiceChannel(message));
-registerCommand(["leave", "exit", "part"], (arg, args, message) => leaveVoiceChannel(message));
+// register the commands
+registerCommand(["join", "voice", "enter", "hello", "come", "comeon", "here"], (arg, args, message) => joinVoiceChannel(message));
+registerCommand(["leave", "exit", "part", "bye", "get", "shoo", "goaway", "nasty"], (arg, args, message) => leaveVoiceChannel(message));
+registerCommand(["play", "tune"], (arg, args, message) => playTune(arg, message));
 registerCommand(["stop", "quit", "quiet", "end"], (arg, args, message) => stopPlayingTune(message));
 registerCommand(["again", "repeat", "encore"], (arg, args, message) => repeatTune(message));
-registerCommand(["examples", "examples", "tunes", "songs"], (arg, args, message) => requestExamples(message));
 registerCommand(["help", "commands", "about", "info"], (arg, args, message) => requestHelp(message));
 registerCommand(["tutorial", "composing", "how", "howto"], (arg, args, message) => requestTutorial(message));
-registerCommand(["play", "tune"], (arg, args, message) => playTune(arg, message));
+registerCommand(["examples", "example", "tunes", "songs", "list", "songlist", "tunelist", "sample", "samples", "juke", "jukebox"], (arg, args, message) => requestExamples(message));
+registerCommand(["invite", "link", "server", "discord"], (arg, args, message) => requestInviteLink(message));
+registerCommand(["github", "git", "code", "dev", "developer", "creator", "about", "writer", "author", "owner"], (arg, args, message) => requestGithubLink(message));
 
 /* MAIN BOT INTERFACE */
 
