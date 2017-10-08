@@ -332,11 +332,11 @@ client.on("message", message => {
         const content = message.content.trim();
         const dm = !message.guild;
         const triggered = content.startsWith(config.trigger);
-	const pinged = message.mentions.users.has(client.user.id);
+	const mentioned = message.mentions.users.has(client.user.id);
 	const inBotChannel = message.channel.name === config.botChannel;
-	const msg = triggered ? content.slice(config.trigger.length).trim() :
-		pinged ? removeMentions(content).trim() : content;
-	if(msg.length && (dm || triggered || inBotChannel || pinged))
+	const clean = mentioned ? removeMentions(content).trim() : content;
+	const msg = triggered ? clean.slice(config.trigger.length).trim() : clean;
+	if(msg.length && (dm || triggered || inBotChannel || mentioned))
 	{
 		// received message directed at the bot
 		if(dm) console.log(`${message.author.username}> ${msg}`);
