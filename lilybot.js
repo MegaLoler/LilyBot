@@ -1,7 +1,5 @@
 // todo:
 // ```lily ...``` addressing
-// invite link command
-// github link
 // scratch files auto gen directories n stuff
 // lilypond functions
 // more elegant logging system?? use console objects features??
@@ -9,6 +7,7 @@
 // proper commands listing
 // permissions based on server roles?
 // use discord emoji yo
+// give arguments to most commands so you can call commands for other users
 
 // libraries
 const { spawn } = require("child_process");
@@ -377,7 +376,7 @@ function executeCommand(cmd, arg, args, message)
 function processBotMessage(msg, message)
 {
 	// cmd is case insensitive, args retain case
-	const words = msg.split(" ");
+	const words = msg.split(/\s+/g);
 	const cmd = words[0].toLowerCase();
 	const arg = words.slice(1).join(" ");
 	// remove empty args
@@ -420,11 +419,30 @@ client.on("message", message => {
         const triggered = content.startsWith(config.trigger);
 	const mentioned = message.mentions.users.has(client.user.id);
 	const inBotChannel = message.channel.name === config.botChannel;
+	const blockCodeHead = `\`\`\`${config.blockCodeAlias}\n`;
+	const blockCode = content.indexOf(blockCodeHead) != -1;
 	const clean = mentioned ? removeMentions(content).trim() : content;
-	const msg = triggered ? clean.slice(config.trigger.length).trim() : clean;
-	if(msg.length && (dm || triggered || inBotChannel || mentioned))
+	// i don't like that this is var and not const
+	var msg = triggered ? clean.slice(config.trigger.length).trim() : clean;
+	if(msg.length && (dm || triggered || mentioned || inBotChannel || blockCode))
 	{
-		// received message directed at the bot
+		// first check to see if it was addressed by code block
+		// if so, extract the intended command from the message
+		if(blockCode)
+		{
+			// if it was given code blocks, the first block is the arg string
+			// and the command is the first word (if any)
+			// i find this ugly parsing, allowing for unclosed blocks and all, w/e
+			const parts = msg.split(blockCodeHead);
+			const words = parts[0].split(/\s+/g);
+			const cmd = words[0].toLowerCase();
+			const arg = parts[1].split("```")[0].trim();
+			// reform the msg from the cmd and the arg from the code block
+			// only include cmd if it is a known command
+			msg = (commands[cmd] ? [cmd] : []).concat([arg]).join(" ");
+		}
+
+		// log received message directed at the bot
 		if(dm) console.log(`${message.author.tag}> ${msg}`);
 		else console.log(`${message.guild.name}> #${message.channel.name}> ${message.author.tag}> ${msg}`);
 

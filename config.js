@@ -9,13 +9,15 @@ const config = {};
 // scratch directory is the directory where scratch files generated will be kept
 // auto join when asked to play and not in voice yet
 // auto stop playing tune when asked to play and already playing one
+// code block alias is what to put after ``` to give block code to the bot
 config.testing = process.argv[2] == "test";
 config.trigger = config.testing ? "t##" : "##";
-config.autoLeaveTimout = 300; // 5 minutes
 config.botChannel = "lilybot";
-config.scratchDirectory = "scratch";
+config.blockCodeAlias = "lily";
+config.autoLeaveTimout = 300; // 5 minutes
 config.autoJoin = true;
 config.autoStop = true;
+config.scratchDirectory = "scratch";
 
 // links
 const inviteLink = "https://discordapp.com/oauth2/authorize?client_id=366712156898590720&scope=bot&permissions=0";
