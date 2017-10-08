@@ -5,9 +5,11 @@ const config = {};
 // pass command line argument "test" to start in testing mode
 // trigger is what is to precede messages to the bot
 // auto leave voice channels after specified seconds
+// bot channel is a channel where the bot will respond to all messages without needing triggers
 config.testing = process.argv[2] == "test";
 config.trigger = config.testing ? "t##" : "##";
 config.autoLeaveTimout = 600; // 10 minutes
+config.botChannel = "lilybot";
 
 // tutorial message
 const tutorialString = `**How to compose your own tunes!**

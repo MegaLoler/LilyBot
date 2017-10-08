@@ -12,6 +12,8 @@
 // lilypond functions
 // more elegant logging system??
 // more elegant javascript in general :3
+// proper commands listing
+// permissions based on server roles?
 
 // libraries
 const discord = require("discord.js");
@@ -20,6 +22,12 @@ const { spawn } = require("child_process");
 // config
 const config = require("./config");
 
+// timers are for leaving voice channels when not used for a while
+const playingStatus = {};
+const dispatchers = {};
+const timers = {};
+
+// render a midi file to a wav file with timidity
 function renderMidi(inFile, outFile, callback)
 {
 	const { spawn } = require("child_process");
@@ -39,37 +47,20 @@ function renderMidi(inFile, outFile, callback)
         });
 }
 
-function getVoiceConnection(guild)
+// FIGURE THIS OUT
+function getVoiceConnection(destination)
 {
 	for(var voiceChannel of client.voiceConnections)
 	{
-		if(guild.id === voiceChannel[1].channel.guild.id) return voiceChannel[1];
+		if(destination.id === voiceChannel[1].channel.guild.id) return voiceChannel[1];
 	}
 }
 
-// timers are for leaving voice channels when not used for a while
-var playingStatus = {};
-var dispatchers = {};
-var timers = {};
-
-// reset the auto leave timer for this guild because it was used
-function voiceEvent(guild)
+// FIGURE THIS OUT......... 
+// play a sound file in a destination (user or guild voice channel)
+function playSound(file, destination)
 {
-	if(timers[guild]) clearTimeout(timers[guild]);
-	timers[guild] = setTimeout(() => {
-		const voiceConnection = getVoiceConnection(guild);
-		if(voiceConnection)
-		{
-			voiceConnection.disconnect();
-			// make designated bot channels a thing first, then do this
-			//sendBotString("onAutoLeaveVoiceChannel", (msg) => message.reply(msg));
-		}
-	}, config.autoLeaveTimout * 1000);
-}
-
-function playSound(message)
-{
-	var voiceConnection = getVoiceConnection(message.guild);
+	const voiceConnection = getVoiceConnection(destination);
 	if(!voiceConnection)
 	{
 		sendBotString("onNotInVoiceChannel", (msg) => message.reply(msg));
@@ -80,21 +71,36 @@ function playSound(message)
 	}
 	else
 	{
-		dispatchers[message.guild.id] = voiceConnection.playFile(`out_${message.guild.id}.wav`);
-		playingStatus[message.guild.id] = true;
+		dispatchers[destination] = voiceConnection.playFile(file);
+		playingStatus[destination] = true;
 
-		dispatchers[message.guild.id].on("end", () => {
-			playingStatus[message.guild.id] = false;
-			dispatchers[message.guild.id].end();
+		dispatchers[destination].on("end", () => {
+			playingStatus[destination] = false;
+			dispatchers[destination].end();
 		});
 
-		dispatchers[message.guild.id].on("error", error => {
+		dispatchers[destination].on("error", error => {
 			console.log(`\t->Error playing file:\n${error}`);
 		});
 
 		return true;
 	}
 	return false;
+}
+
+// reset the auto leave timer for this destination because it was used
+function voiceEvent(destination)
+{
+	if(timers[destination]) clearTimeout(timers[destination]);
+	timers[destination] = setTimeout(() => {
+		const voiceConnection = getVoiceConnection(destination);
+		if(voiceConnection)
+		{
+			voiceConnection.disconnect();
+			// FIGURE THIS OUT
+			//sendBotString("onAutoLeaveVoiceChannel", (msg) => message.reply(msg));
+		}
+	}, config.autoLeaveTimout * 1000);
 }
 
 // send discord messages safely
@@ -247,6 +253,24 @@ registerCommand(["play", "tune"], (arg, args, message) => {
 	voiceEvent(message.guild);
 });
 
+// executes a command
+// given cmd name, arg string, args list, and originating discord message
+function executeCommand(cmd, arg, args, message)
+{
+	// get the command function and call it
+	// return false if command doesn't exist
+	const command = commands[cmd];
+	if(command)
+	{
+		command(arg, args, message);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 // process a message to the bot
 // the message string, and the originating discord message object
 function processBotMessage(msg, message)
@@ -255,15 +279,15 @@ function processBotMessage(msg, message)
 	const words = msg.split(" ");
 	const cmd = words[0].toLowerCase();
 	const arg = words.slice(1).join(" ");
+	// remove empty args
 	const args = words.slice(1).filter((v) => {
 		return v.length;
 	});
 
-	// get the command function and call it
+	// execute the command
 	// assume play function if none other found
-	const command = commands[cmd];
-	if(command) command(arg, args, message);
-	else commands.play(msg, words, message);
+	if(!executeCommand(cmd, arg, args, message))
+		commands.play(msg, words, message);
 }
 
 // make the discord connection
@@ -272,20 +296,28 @@ const client = new discord.Client();
 // once its all connected and good to go
 client.on("ready", () => {
 	console.log(`Logged in as ${client.user.tag}!`);
+	// set the discord presence to show how to get help
 	client.user.setGame(`${config.trigger}help`);
 });
 
 // on message recieve
 client.on("message", message => {
+	// ignore messages from self
 	if(client.user.id === message.author.id) return;
-        const content = message.content.trim();
+
+	// figure out if a message is directed at the bot or not
+        const content = message.cleanContent.trim();
         const dm = !message.guild;
         const triggered = content.startsWith(config.trigger);
+	const pinged = message.mentions.users.has(client.user.id);
+	console.log(pinged);
+	const inBotChannel = message.channel.name === config.botChannel;
 	const msg = triggered ? content.slice(config.trigger.length) : content;
-	if(triggered && msg.length)
+	if(msg.length && (dm || triggered || inBotChannel || pinged))
 	{
 		// received message directed at the bot
 		console.log(`${message.guild.name}> #${message.channel.name}> ${message.author.username}> ${msg}`);
+		// go handle the message to the bot
 		processBotMessage(msg, message);
 	}
 });
