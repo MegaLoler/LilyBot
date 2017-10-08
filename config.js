@@ -7,11 +7,15 @@ const config = {};
 // auto leave voice channels after specified seconds
 // bot channel is a channel where the bot will respond to all messages without needing triggers
 // scratch directory is the directory where scratch files generated will be kept
+// auto join when asked to play and not in voice yet
+// auto stop playing tune when asked to play and already playing one
 config.testing = process.argv[2] == "test";
 config.trigger = config.testing ? "t##" : "##";
 config.autoLeaveTimout = 300; // 5 minutes
 config.botChannel = "lilybot";
 config.scratchDirectory = "scratch";
+config.autoJoin = true;
+config.autoStop = true;
 
 // tutorial message
 const tutorialString = `**How to compose your own tunes!**

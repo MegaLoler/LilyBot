@@ -9,7 +9,6 @@
 // proper commands listing
 // permissions based on server roles?
 // use discord emoji yo
-// configable auto join if not in, and auto stop if already playing
 
 // libraries
 const { spawn } = require("child_process");
@@ -83,7 +82,7 @@ function getVoiceConnection(guild)
 // is the bot playing in this guild?
 function isPlaying(guild)
 {
-	return playingStatus[message.guild.id];
+	return playingStatus[guild.id];
 }
 
 // id like play sound and stop sound to be CHANNEL dependant, not guild
@@ -130,7 +129,7 @@ function voiceEvent(guild)
 // clear the voice auto leave timer for a guild
 function clearTimer(guild)
 {
-	if(timers[message.guild.id]) clearTimeout(timers[message.guild.id]);
+	if(timers[guild.id]) clearTimeout(timers[guild.id]);
 }
 
 // get the designated bot channel for the guild
@@ -187,22 +186,48 @@ function reply(message, msg)
 
 /* COMMAND FUNCTIONS AND INFRASTRUCTURE */
 
+// just perform the join of the voice channel of the member of the message
+function doJoin(message, verbose=true)
+{
+	message.member.voiceChannel.join().then(connection => {
+		if(verbose) sendBotString("onJoinVoiceChannel", (msg) => reply(message, msg));
+	}).catch(console.log);
+	voiceEvent(message.guild);
+}
+
+// a "subcommand" to try to auto join a channel if set in config , if not already in there
+// return whether in or getting in
+function tryAutoJoin(message)
+{
+	if(getVoiceConnection(message.guild)) return true;
+	else if(config.autoJoin)
+	{
+		doJoin(message, false);
+		return true;
+	}
+	else return false;
+}
+
+// a "subcommand" to try to auto stop a tune if set in config , if one is playing already
+// return whether stopped
+function tryAutoStop(message)
+{
+	if(!isPlaying(message.guild)) return true;
+	else if(config.autoStop)
+	{
+		stopSound(message.guild);
+		return true;
+	}
+	else return false;
+}
+
 // a "subcommand" to handle wanting to play something
 // returns whether can play or not
 function requestToPlay(message)
 {
-	if(!message.guild)
-	{
-		sendBotString("onPrivatePlayFail", (msg) => reply(message, msg));
-	}
-	else if(!voiceConnection)
-	{
-		sendBotString("onNotInVoiceChannel", (msg) => reply(message, msg));
-	}
-	else if(isPlaying(guild))
-	{
-		sendBotString("onAlreadyPlayingTune", (msg) => reply(message, msg));
-	}
+	if(!message.guild) sendBotString("onPrivatePlayFail", (msg) => reply(message, msg));
+	else if(!tryAutoJoin(message)) sendBotString("onNotInVoiceChannel", (msg) => reply(message, msg));
+	else if(!tryAutoStop(message)) sendBotString("onAlreadyPlayingTune", (msg) => reply(message, msg));
 	else return true;
 	return false;
 }
@@ -210,41 +235,25 @@ function requestToPlay(message)
 // join the voice channel of the author
 function joinVoiceChannel(message)
 {
-	if(!message.guild)
-	{
-		sendBotString("onPrivateJoinVoiceChannelFail", (msg) => reply(message, msg));
-	}
-	else if(message.member.voiceChannel)
-	{
-		message.member.voiceChannel.join().then(connection => {
-			sendBotString("onJoinVoiceChannel", (msg) => reply(message, msg));
-		}).catch(console.log);
-		voiceEvent(message.guild);
-	} else {
-		sendBotString("onJoinVoiceChannelFail", (msg) => reply(message, msg));
-	}
+	if(!message.guild) sendBotString("onPrivateJoinVoiceChannelFail", (msg) => reply(message, msg));
+	else if(message.member.voiceChannel) doJoin(message);
+	else sendBotString("onJoinVoiceChannelFail", (msg) => reply(message, msg));
 }
 
 // leave the voice channel its in
 function leaveVoiceChannel(message)
 {
-	if(!message.guild)
-	{
-		sendBotString("onPrivateLeaveVoiceChannelFail", (msg) => reply(message, msg));
-	}
+	if(!message.guild) sendBotString("onPrivateLeaveVoiceChannelFail", (msg) => reply(message, msg));
 	else
 	{
 		const voiceConnection = getVoiceConnection(message.guild);
-		if(!voiceConnection)
-		{
-			sendBotString("onLeaveVoiceChannelFail", (msg) => reply(message, msg));
-		}
+		if(!voiceConnection) sendBotString("onLeaveVoiceChannelFail", (msg) => reply(message, msg));
 		else
 		{
 			voiceConnection.disconnect();
 			sendBotString("onLeaveVoiceChannel", (msg) => reply(message, msg));
 		}
-		clearTimer(guild);
+		clearTimer(message.guild);
 	}
 }
 
@@ -281,15 +290,12 @@ function repeatTune(message)
 // stop playing in the channel of the guild the message is from
 function stopPlayingTune(message)
 {
-	if(message.guild && stopPlaying(guild)])
+	if(message.guild && stopSound(message.guild))
 	{
 		sendBotString("onStopTune", (msg) => reply(message, msg));
+		voiceEvent(message.guild);
 	}
-	else
-	{
-		sendBotString("onNotPlayingTune", (msg) => reply(message, msg));
-	}
-	voiceEvent(message.guild);
+	else sendBotString("onNotPlayingTune", (msg) => reply(message, msg));
 }
 
 // respond to the message with examples
