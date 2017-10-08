@@ -1,167 +1,36 @@
 // todo:
-// ~~invite-link command
-// arbitrary midi program numbers
-// arbitrary tempos too
-// midi import and export via file sends
-// seriouly just... redo all the music code!
-//   especially have a proper expression parser, and make it a module on its own!
-//   loops and looping structures and ... sequential groups of parallel?
-//   fix starting rests
-//   inline tempo and patch changes
-//   percussion
-//   triplets
-//   solfege input mode
-//   "wait" character (multirest, ie: r1 for rest, r5 for 5 units of rest
-//   or like , r = .. and w = rr
-//   LILYPOND ENGINE?????
-// private calls and dms
-// server specific config of sorts..
-//   command permissions?
-//   including designated bot channel!! so i can make the bot say stuff there it needs to say on its own
-//   user example library
-//   delete messages after a bit in bot channel? maybe?
-// fancy server side repl
-//   with debug logger
-// edit messages, maybe?
-// inline musical snippits? :P
-// encores with arguments
-// "scrolling" game presence for announcements and stuff?
-// somehow fix playing unknown commands as music?
-// proper ~~commands listing
-// relative octaves (nearest octave)
-// tts singer
-//
-// join link:
-// https://discordapp.com/oauth2/authorize?client_id=365644276417298432&scope=bot&permissions=0
+// destinations -- per guild or per user if dm
+// bot addressing modes:
+//   ```lily ...``` addressing
+//   ping addressing
+//   dm addressing
+//   dedicated channel addressing
+//   bot trigger addressing
+// invite link command
+// github link
+// scratch files
+// lilypond functions
+// more elegant logging system??
+// more elegant javascript in general :3
 
 // libraries
-const scribble = require("scribbletune");
 const discord = require("discord.js");
 const { spawn } = require("child_process");
 
 // config
 const config = require("./config");
 
-// output a midi file from a musical expression
-// translates from tunebot's language to scribbletune's language
-// then uses scribbletune to output the midi file
-function generate_midi(expression, out)
-{
-	var notes = [];
-	var pattern = "";
-	var accentMap = [];
-	var octave = 4;
-	var defaultVelocity = 64;
-	var velocity = defaultVelocity;
-
-	var target = notes;
-
-	for(var c of expression.toLowerCase())
-	{
-		if("abcdefg".indexOf(c) != -1)
-		{
-			target.push(c + octave);
-			if(target == notes) pattern += 'x';
-			if(target == notes) accentMap.push(velocity);
-			velocity = defaultVelocity;
-		}
-		else if(c == '#')
-		{
-			target[target.length - 1] += c;
-		}
-		else if(c == ',')
-		{
-			target.push(target[target.length - 1]);
-			if(target == notes) pattern += 'x';
-			if(target == notes) accentMap.push(velocity);
-		}
-		else if(c == '[' && target == notes)
-		{
-			var newNest = [];
-			target.push(newNest);
-			target = newNest;
-			pattern += 'x';
-			accentMap.push(defaultVelocity);
-			velocity = '70';
-		}
-		else if(c == ']')
-		{
-			target = notes;
-		}
-		else if(c == '-')
-		{
-			if(target == notes) pattern += '_';
-		}
-		else if(c == '.')
-		{
-			if(target == notes) pattern += '-';
-		}
-		else if(c == '^')
-		{
-			if(target == notes) velocity = parseInt(velocity) + 16;
-		}
-		else if(c == 'v')
-		{
-			if(target == notes) velocity = parseInt(velocity) - 16;
-		}
-		else if(c == 'p')
-		{
-			if(target == notes)
-			{
-				defaultVelocity = 40;
-				velocity = defaultVelocity;
-			}
-		}
-		else if(c == 'l')
-		{
-			if(target == notes)
-			{
-				defaultVelocity = 88;
-				velocity = defaultVelocity;
-			}
-		}
-		else if(c == 'm')
-		{
-			if(target == notes)
-			{
-				defaultVelocity = 64;
-				velocity = defaultVelocity;
-			}
-		}
-		else if(c == '>')
-		{
-			octave++;
-		}
-		else if(c == '<')
-		{
-			octave--;
-		}
-		else if("0123456789".indexOf(c) != -1)
-		{
-			octave = c;
-		}
-	}
-
-	var clip = scribble.clip({
-	    notes: notes,
-	    pattern: pattern,
-	    accentMap: accentMap,
-	});  
-
-	scribble.midi(clip, `${out}.mid`);
-}
-
-function convert_midi_to_wav(program, tempo, volume, input, out, callback)
+function renderMidi(inFile, outFile, callback)
 {
 	const { spawn } = require("child_process");
-        const child = spawn("timidity", [`${input}.mid`, "-A", volume, `--adjust-tempo=${tempo}`, `--force-program=${program}`, "-Ow", "-o", `${out}.wav`]);
+        const child = spawn("timidity", [`${inFile}.mid`, "-Ow", "-o", `${outFile}.wav`]);
         
         child.stdout.on("data", (data) => {
 		if(config.testing) console.log(`timidity: ${data}`);
         });
         
         child.stderr.on("data", (data) => {
-		if(config.testing) console.log(`!!timidity: ${data}`);
+		if(config.testing) console.error(`timidity: ${data}`);
         });
         
         child.on("close", (code) => {
@@ -169,113 +38,6 @@ function convert_midi_to_wav(program, tempo, volume, input, out, callback)
 		if(callback) callback();
         });
 }
-
-function merge_wavs(id, count, callback)
-{
-	if(count == 1)
-	{
-		const child = spawn("mv", [`out_0_${id}.wav`, `out_${id}.wav`]);
-		child.on("close", (code) => {
-			if(callback) callback();
-		});
-	}
-	else if(count > 1)
-	{
-		// do this functionally
-		const inputArgs = [];
-		for(var i = 0; i < count; i++)
-		{
-			inputArgs.push("-i", `out_${i}_${id}.wav`);
-		}
-
-		const out = `out_${id}.wav`;
-		const child = spawn("ffmpeg", ["-y"].concat(inputArgs).concat(["-filter_complex", `amix=inputs=${count}`, out]));
-
-		child.stdout.on("data", (data) => {
-			if(config.testing) console.log(`ffmpeg: ${data}`);
-		});
-		
-		child.stderr.on("data", (data) => {
-			if(config.testing) console.log(`!!ffmpeg: ${data}`);
-		});
-		
-		child.on("close", (code) => {
-			if(config.testing || code) console.log(`ffmpeg exit code: ${code}`);
-			if(callback) callback();
-		});
-	}
-}
-
-// make a wave file from an expression
-// id is the id of the discord server
-// each discord server gets their own .wav output
-// calls callback (async) when its done
-function generate_wav(id, expression, callback)
-{
-	// i'd like this entire system of evaluating musical expressions to be reworked somehow
-	// to be more flexible and better written
-	// separate all the expressions separated by :
-	// and processes them in order
-	const parts = expression.split(":").slice(0, 12); // some max args for safety
-	var program = 0;
-	var tempo = 75;
-	var volume = 100
-	var i = 0;
-	const processing = [];
-	for(var p of parts)
-	{
-		p = p.trim().toLowerCase();
-		if(p in config.programs)
-		{
-			program = config.programs[p];
-		}
-		else if(p === "loud")
-		{
-			volume = 100;
-		}
-		else if(p === "quiet")
-		{
-			volume = 50;
-		}
-		else if(p === "double")
-		{
-			tempo *= 2;
-		}
-		else if(p === "half")
-		{
-			tempo /= 2;
-		}
-		else if(p in config.tempos)
-		{
-			tempo = config.tempos[p];
-		}
-		else
-		{
-			const out = `out_${i}_${id}`;
-			generate_midi(p, out);
-			processing.push(out);
-			convert_midi_to_wav(program, tempo, volume, out, out, () => {
-				const i = processing.indexOf(out);
-				if(i != -1) processing.splice(i, 1);
-			});
-			i++;
-		}
-	}
-	// asynchronously wait for all the midis to be converted to wavs
-	function wait()
-	{
-		if(processing.length == 0)
-		{
-			merge_wavs(id, i, callback);
-		}
-		else
-		{
-			setTimeout(wait, 10);
-		}
-	}
-	setTimeout(wait, 0);
-}
-
 
 function getVoiceConnection(guild)
 {
