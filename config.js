@@ -6,10 +6,12 @@ const config = {};
 // trigger is what is to precede messages to the bot
 // auto leave voice channels after specified seconds
 // bot channel is a channel where the bot will respond to all messages without needing triggers
+// scratch directory is the directory where scratch files generated will be kept
 config.testing = process.argv[2] == "test";
 config.trigger = config.testing ? "t##" : "##";
-config.autoLeaveTimout = 600; // 10 minutes
+config.autoLeaveTimout = 300; // 5 minutes
 config.botChannel = "lilybot";
+config.scratchDirectory = "scratch";
 
 // tutorial message
 const tutorialString = `**How to compose your own tunes!**
@@ -50,7 +52,7 @@ config.botStrings = {
 	// when it joins a voice channel
 	"onJoinVoiceChannel": {
 		string: "I'm in there! ^^",
-		enabled: false,
+		enabled: true,
 	},
 	// when you invite it to a voice channel but you aren't in one
 	"onJoinVoiceChannelFail": {
@@ -65,27 +67,32 @@ config.botStrings = {
 	// when it leaves the voice channel
 	"onLeaveVoiceChannel": {
 		string: "Okay, I left... :c",
-		enabled: false,
+		enabled: true,
 	},
 	// when you tell it to leave a voice channel but it's not in one
 	"onLeaveVoiceChannelFail": {
 		string: "I'm not in a voice channel though, silly. :3",
-		enabled: false,
+		enabled: true,
 	},
-	// when you tell it to leave a voice channel but it's not in one
+	// when you tell it to leave a private call its not in
 	"onPrivateLeaveVoiceChannelFail": {
 		string: "We're not in a voice call, you silly goose. XD",
 		enabled: true,
 	},
 	// when it leaves the voice channel automatically
-	"onLeaveVoiceChannel": {
+	"onAutoLeaveVoiceChannel": {
 		string: "I left the voice channel because it was lonely in there...",
+		enabled: true,
+	},
+	// when you tell it to play in private messages and it can't
+	"onPrivatePlayFail": {
+		string: "If you want me to play for you, you should ask me in a server! Sadly I'm not allowed to play for people privately. :c",
 		enabled: true,
 	},
 	// when you ask it to play the tune again
 	"onEncore": {
 		string: "I'd love to play it for you again! ^-^",
-		enabled: false,
+		enabled: true,
 	},
 	// when it fails to evaluate a musical expression
 	"onTuneError": {
@@ -105,12 +112,12 @@ config.botStrings = {
 	// when it stops playing a tune
 	"onStopTune": {
 		string: "I stopped playing the tune~",
-		enabled: false,
+		enabled: true,
 	},
 	// when you tell it to stop playing a tune but it's not playing one
 	"onNotPlayingTune": {
 		string: "But I'm not playing anything right now! :o",
-		enabled: false,
+		enabled: true,
 	},
 	// when you ask for the instruments it recognizes
 	"onInstrumentRequest": {

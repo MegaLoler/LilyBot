@@ -1,23 +1,20 @@
 // todo:
-// destinations -- per guild or per user if dm
-// bot addressing modes:
-//   ```lily ...``` addressing
-//   ping addressing
-//   dm addressing
-//   dedicated channel addressing
-//   bot trigger addressing
+// ```lily ...``` addressing
 // invite link command
 // github link
-// scratch files
+// scratch files auto gen directories n stuff
 // lilypond functions
-// more elegant logging system??
+// more elegant logging system?? use console objects features??
 // more elegant javascript in general :3
 // proper commands listing
 // permissions based on server roles?
+// use discord emoji yo
+// configable auto join if not in, and auto stop if already playing
 
 // libraries
-const discord = require("discord.js");
 const { spawn } = require("child_process");
+const fs = require("fs");
+const discord = require("discord.js");
 
 // config
 const config = require("./config");
@@ -26,6 +23,8 @@ const config = require("./config");
 const playingStatus = {};
 const dispatchers = {};
 const timers = {};
+
+/* EXTERNAL COMMANDS */
 
 // render a midi file to a wav file with timidity
 function renderMidi(inFile, outFile, callback)
@@ -47,45 +46,91 @@ function renderMidi(inFile, outFile, callback)
         });
 }
 
-// FIGURE THIS OUT
-function getVoiceConnection(destination)
+/* BOT UTILITY FUNCTIONS */
+
+// get the scratch directory for a user
+function getUserScratchPath(user)
 {
-	for(var voiceChannel of client.voiceConnections)
-	{
-		if(destination.id === voiceChannel[1].channel.guild.id) return voiceChannel[1];
-	}
+	return `${config.scratchDirectory}/user_${user.id}`;
 }
 
-// FIGURE THIS OUT......... 
-// play a sound file in a destination (user or guild voice channel)
-function playSound(file, destination)
+// get the scratch directory for a guild
+function getGuildScratchPath(guild)
 {
-	const voiceConnection = getVoiceConnection(destination);
-	if(!voiceConnection)
-	{
-		sendBotString("onNotInVoiceChannel", (msg) => reply(message, msg));
-	}
-	else if(playingStatus[message.guild.id])
-	{
-		sendBotString("onAlreadyPlayingTune", (msg) => reply(message, msg));
-	}
-	else
-	{
-		dispatchers[destination] = voiceConnection.playFile(file);
-		playingStatus[destination] = true;
+	return `${config.scratchDirectory}/guild_${guild.id}`;
+}
 
-		dispatchers[destination].on("end", () => {
-			playingStatus[destination] = false;
-			dispatchers[destination].end();
-		});
+// get the scratch file of an extension for a user
+function getUserScratchFile(user, extension)
+{
+	return `${getUserScratchPath(user)}/scratch.${extension}`;
+}
 
-		dispatchers[destination].on("error", error => {
-			console.log(`\t->Error playing file:\n${error}`);
-		});
+// get the scratch file of an extension for a guild
+function getGuildScratchFile(guild, extension)
+{
+	return `${getGuildScratchPath(guild)}/scratch.${extension}`;
+}
 
-		return true;
-	}
-	return false;
+// get the voice connection (if connected) of a guild
+function getVoiceConnection(guild)
+{
+	return client.voiceConnections.filter((connection) => {
+		return guild.id === connection.channel.guild.id;
+	}).first();
+}
+
+// is the bot playing in this guild?
+function isPlaying(guild)
+{
+	return playingStatus[message.guild.id];
+}
+
+// id like play sound and stop sound to be CHANNEL dependant, not guild
+// play a sound file in a guild in response to message
+function playSound(file, guild)
+{
+	const voiceConnection = getVoiceConnection(guild);
+	dispatchers[guild.id] = voiceConnection.playFile(file);
+	playingStatus[guild.id] = true;
+
+	dispatchers[guild.id].on("end", () => {
+		stopSound(guild);
+	});
+
+	dispatchers[guild.id].on("error", error => {
+		console.log(`\t->Error playing file:\n${error}`);
+	});
+}
+
+// stop playing in a guild if it is
+// return false if wasn't playing
+function stopSound(guild)
+{
+	if(!playingStatus[guild.id]) return false;
+	dispatchers[guild.id].end();
+	playingStatus[guild.id] = false;
+	return true;
+}
+
+// reset the auto leave timer for this guild because it was used
+function voiceEvent(guild)
+{
+	clearTimer(guild);
+	timers[guild.id] = setTimeout(() => {
+		const voiceConnection = getVoiceConnection(guild);
+		if(voiceConnection)
+		{
+			voiceConnection.disconnect();
+			sendBotString("onAutoLeaveVoiceChannel", (msg) => getBotChannel(guild).send(msg));
+		}
+	}, config.autoLeaveTimout * 1000);
+}
+
+// clear the voice auto leave timer for a guild
+function clearTimer(guild)
+{
+	if(timers[message.guild.id]) clearTimeout(timers[message.guild.id]);
 }
 
 // get the designated bot channel for the guild
@@ -95,20 +140,6 @@ function getBotChannel(guild)
 	return guild.channels.filter((channel) => {
 		return channel.name === config.botChannel;
 	}).first();
-}
-
-// reset the auto leave timer for this guild because it was used
-function voiceEvent(guild)
-{
-	if(timers[guild]) clearTimeout(timers[guild]);
-	timers[guild] = setTimeout(() => {
-		const voiceConnection = getVoiceConnection(guild);
-		if(voiceConnection)
-		{
-			voiceConnection.disconnect();
-			sendBotString("onAutoLeaveVoiceChannel", (msg) => getBotChannel(guild).send(msg));
-		}
-	}, config.autoLeaveTimout * 1000);
 }
 
 // send discord messages safely
@@ -154,6 +185,28 @@ function reply(message, msg)
 	else message.channel.send(msg);
 }
 
+/* COMMAND FUNCTIONS AND INFRASTRUCTURE */
+
+// a "subcommand" to handle wanting to play something
+// returns whether can play or not
+function requestToPlay(message)
+{
+	if(!message.guild)
+	{
+		sendBotString("onPrivatePlayFail", (msg) => reply(message, msg));
+	}
+	else if(!voiceConnection)
+	{
+		sendBotString("onNotInVoiceChannel", (msg) => reply(message, msg));
+	}
+	else if(isPlaying(guild))
+	{
+		sendBotString("onAlreadyPlayingTune", (msg) => reply(message, msg));
+	}
+	else return true;
+	return false;
+}
+
 // join the voice channel of the author
 function joinVoiceChannel(message)
 {
@@ -191,8 +244,75 @@ function leaveVoiceChannel(message)
 			voiceConnection.disconnect();
 			sendBotString("onLeaveVoiceChannel", (msg) => reply(message, msg));
 		}
-		if(timers[message.guild]) clearTimeout(timers[message.guild]);
+		clearTimer(guild);
 	}
+}
+
+// respond with playing the tune
+function playTune(tune, message)
+{
+	if(requestToPlay(message))
+	{
+		try
+		{
+			// this is going to be totally redone
+			playSound(getGuildScratchFile(message.guild), message.guild);
+		}
+		catch(error)
+		{
+			console.log(`\t-> Invalid musical expression!\n${error}`);
+			sendBotString("onTuneError", (msg) => reply(message, msg));
+		}
+		voiceEvent(message.guild);
+	}
+}
+
+// repeat the last tune
+function repeatTune(message)
+{
+	if(requestToPlay(message))
+	{
+		playSound(getGuildScratchFile(message.guild, "wav"), message.guild);
+		sendBotString("onEncore", (msg) => reply(message, msg));
+		voiceEvent(message.guild);
+	}
+}
+
+// stop playing in the channel of the guild the message is from
+function stopPlayingTune(message)
+{
+	if(message.guild && stopPlaying(guild)])
+	{
+		sendBotString("onStopTune", (msg) => reply(message, msg));
+	}
+	else
+	{
+		sendBotString("onNotPlayingTune", (msg) => reply(message, msg));
+	}
+	voiceEvent(message.guild);
+}
+
+// respond to the message with examples
+function requestExamples(message)
+{
+	// get the list of example strings
+	const ls = Object.keys(config.examples).map((key) => {
+		const example = config.examples[key];
+		return `**${key}**:${ example.credit ? ` _(sequenced by ${example.credit})_` : " " }\`\`\`${config.trigger}${example.example}\`\`\``;
+	});
+	sendBotString("onExampleRequest", (msg) => reply(message, msg), (msg) => message.channel.send(msg), `\n\n${ls.join("\n\n")}`, "\n\n");
+}
+
+// respond with help message
+function requestHelp(message)
+{
+	sendBotString("onHelpRequest", (msg) => reply(message, msg), (msg) => message.channel.send(msg));
+}
+
+// respond with tutorial message
+function requestTutorial(message)
+{
+	sendBotString("onTutorialRequest", (msg) => reply(message, msg), (msg) => message.channel.send(msg));
 }
 
 // map of commands
@@ -211,79 +331,14 @@ function registerCommand(names, f)
 // the commands
 registerCommand(["join", "voice", "enter", "invite"], (arg, args, message) => joinVoiceChannel(message));
 registerCommand(["leave", "exit", "part"], (arg, args, message) => leaveVoiceChannel(message));
+registerCommand(["stop", "quit", "quiet", "end"], (arg, args, message) => stopPlayingTune(message));
+registerCommand(["again", "repeat", "encore"], (arg, args, message) => repeatTune(message));
+registerCommand(["examples", "examples", "tunes", "songs"], (arg, args, message) => requestExamples(message));
+registerCommand(["help", "commands", "about", "info"], (arg, args, message) => requestHelp(message));
+registerCommand(["tutorial", "composing", "how", "howto"], (arg, args, message) => requestTutorial(message));
+registerCommand(["play", "tune"], (arg, args, message) => playTune(arg, message));
 
-// stop playing a tune
-registerCommand(["stop", "quit", "quiet", "end"], (arg, args, message) => {
-	if(playingStatus[message.guild.id])
-	{
-		dispatchers[message.guild.id].end();
-		sendBotString("onStopTune", (msg) => reply(message, msg));
-	}
-	else
-	{
-		sendBotString("onNotPlayingTune", (msg) => reply(message, msg));
-	}
-	voiceEvent(message.guild);
-});
-
-// repeat the last tune
-registerCommand(["again", "repeat", "encore"], (arg, args, message) => {
-	if(playSound(message))
-	{
-		sendBotString("onEncore", (msg) => reply(message, msg));
-		voiceEvent(message.guild);
-	}
-});
-
-// see what known instruments there are
-registerCommand(["instruments", "list", "instrument"], (arg, args, message) => {
-	// get the list of instrument strings
-	const ls = Array(128).fill().map((v, i) => {
-		const aliases = Object.keys(config.programs).filter((key) => {
-			return config.programs[key] == i;
-		}).map((alias) => {
-			return `\`${alias}\``;
-		}).join(" ");
-		return `• \`p${parseInt(i) + 1}\`\t${aliases}`;
-	});
-	sendBotString("onInstrumentRequest", (msg) => message.channel.send(msg), (msg) => message.channel.send(msg), `\n${ls.join("\n")}`);
-});
-
-// see example tunes
-registerCommand(["examples", "examples", "tunes", "songs"], (arg, args, message) => {
-	// get the list of example strings
-	const ls = Object.keys(config.examples).map((key) => {
-		const example = config.examples[key];
-		return `**${key}**:${ example.credit ? ` _(sequenced by ${example.credit})_` : " " }\`\`\`${config.trigger}${example.example}\`\`\``;
-	});
-	sendBotString("onExampleRequest", (msg) => reply(message, msg), (msg) => message.channel.send(msg), `\n\n${ls.join("\n\n")}`, "\n\n");
-});
-
-// get general help
-registerCommand(["help", "commands", "about", "info"], (arg, args, message) => {
-	sendBotString("onHelpRequest", (msg) => reply(message, msg), (msg) => message.channel.send(msg));
-});
-
-// see the composing tutorial
-registerCommand(["tutorial", "composing", "how", "howto"], (arg, args, message) => {
-	sendBotString("onTutorialRequest", (msg) => reply(message, msg), (msg) => message.channel.send(msg));
-});
-
-// evaluate and play a musical expression
-registerCommand(["play", "tune"], (arg, args, message) => {
-	try
-	{
-		generate_wav(message.guild.id, arg, () => {
-			playSound(message);
-		});
-	}
-	catch(error)
-	{
-		console.log(`\t-> Invalid musical expression!\n${error}`);
-		sendBotString("onTuneError", (msg) => reply(message, msg));
-	}
-	voiceEvent(message.guild);
-});
+/* MAIN BOT INTERFACE */
 
 // executes a command
 // given cmd name, arg string, args list, and originating discord message
@@ -361,7 +416,6 @@ client.on("message", message => {
 // load the token from file and login
 function main()
 {
-	const fs = require("fs");
 	const token = fs.readFileSync("token.txt", "ascii").trim();
 	client.login(token);
 }
