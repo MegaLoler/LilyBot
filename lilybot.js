@@ -88,17 +88,25 @@ function playSound(file, destination)
 	return false;
 }
 
-// reset the auto leave timer for this destination because it was used
-function voiceEvent(destination)
+// get the designated bot channel for the guild
+// for now just the first channel with the name specified in the config
+function getBotChannel(guild)
 {
-	if(timers[destination]) clearTimeout(timers[destination]);
-	timers[destination] = setTimeout(() => {
-		const voiceConnection = getVoiceConnection(destination);
+	return guild.channels.filter((channel) => {
+		return channel.name === config.botChannel;
+	}).first();
+}
+
+// reset the auto leave timer for this guild because it was used
+function voiceEvent(guild)
+{
+	if(timers[guild]) clearTimeout(timers[guild]);
+	timers[guild] = setTimeout(() => {
+		const voiceConnection = getVoiceConnection(guild);
 		if(voiceConnection)
 		{
 			voiceConnection.disconnect();
-			// FIGURE THIS OUT
-			//sendBotString("onAutoLeaveVoiceChannel", (msg) => reply(message, msg));
+			sendBotString("onAutoLeaveVoiceChannel", (msg) => getBotChannel(guild).send(msg));
 		}
 	}, config.autoLeaveTimout * 1000);
 }
@@ -164,6 +172,29 @@ function joinVoiceChannel(message)
 	}
 }
 
+// leave the voice channel its in
+function leaveVoiceChannel(message)
+{
+	if(!message.guild)
+	{
+		sendBotString("onPrivateLeaveVoiceChannelFail", (msg) => reply(message, msg));
+	}
+	else
+	{
+		const voiceConnection = getVoiceConnection(message.guild);
+		if(!voiceConnection)
+		{
+			sendBotString("onLeaveVoiceChannelFail", (msg) => reply(message, msg));
+		}
+		else
+		{
+			voiceConnection.disconnect();
+			sendBotString("onLeaveVoiceChannel", (msg) => reply(message, msg));
+		}
+		if(timers[message.guild]) clearTimeout(timers[message.guild]);
+	}
+}
+
 // map of commands
 const commands = {};
 
@@ -178,8 +209,8 @@ function registerCommand(names, f)
 }
 
 // the commands
-// join a voice channel
 registerCommand(["join", "voice", "enter", "invite"], (arg, args, message) => joinVoiceChannel(message));
+registerCommand(["leave", "exit", "part"], (arg, args, message) => leaveVoiceChannel(message));
 
 // stop playing a tune
 registerCommand(["stop", "quit", "quiet", "end"], (arg, args, message) => {
@@ -193,21 +224,6 @@ registerCommand(["stop", "quit", "quiet", "end"], (arg, args, message) => {
 		sendBotString("onNotPlayingTune", (msg) => reply(message, msg));
 	}
 	voiceEvent(message.guild);
-});
-
-// leave a voice channel
-registerCommand(["leave", "exit", "part"], (arg, args, message) => {
-	const voiceConnection = getVoiceConnection(message.guild);
-	if(!voiceConnection)
-	{
-		sendBotString("onLeaveVoiceChannelFail", (msg) => reply(message, msg));
-	}
-	else
-	{
-		voiceConnection.disconnect();
-		sendBotString("onLeaveVoiceChannel", (msg) => reply(message, msg));
-	}
-	if(timers[message.guild]) clearTimeout(timers[message.guild]);
 });
 
 // repeat the last tune
@@ -276,15 +292,9 @@ function executeCommand(cmd, arg, args, message)
 	// get the command function and call it
 	// return false if command doesn't exist
 	const command = commands[cmd];
-	if(command)
-	{
-		command(arg, args, message);
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+	if(command) command(arg, args, message);
+	else return false;
+	return true;
 }
 
 // process a message to the bot
@@ -329,6 +339,7 @@ client.on("message", message => {
 	if(client.user.id === message.author.id) return;
 
 	// figure out if a message is directed at the bot or not
+	// and extract the intended message to the bot
         const content = message.content.trim();
         const dm = !message.guild;
         const triggered = content.startsWith(config.trigger);

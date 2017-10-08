@@ -72,6 +72,11 @@ config.botStrings = {
 		string: "I'm not in a voice channel though, silly. :3",
 		enabled: false,
 	},
+	// when you tell it to leave a voice channel but it's not in one
+	"onPrivateLeaveVoiceChannelFail": {
+		string: "We're not in a voice call, you silly goose. XD",
+		enabled: true,
+	},
 	// when it leaves the voice channel automatically
 	"onLeaveVoiceChannel": {
 		string: "I left the voice channel because it was lonely in there...",
