@@ -63,11 +63,11 @@ function playSound(file, destination)
 	const voiceConnection = getVoiceConnection(destination);
 	if(!voiceConnection)
 	{
-		sendBotString("onNotInVoiceChannel", (msg) => message.reply(msg));
+		sendBotString("onNotInVoiceChannel", (msg) => reply(message, msg));
 	}
 	else if(playingStatus[message.guild.id])
 	{
-		sendBotString("onAlreadyPlayingTune", (msg) => message.reply(msg));
+		sendBotString("onAlreadyPlayingTune", (msg) => reply(message, msg));
 	}
 	else
 	{
@@ -98,7 +98,7 @@ function voiceEvent(destination)
 		{
 			voiceConnection.disconnect();
 			// FIGURE THIS OUT
-			//sendBotString("onAutoLeaveVoiceChannel", (msg) => message.reply(msg));
+			//sendBotString("onAutoLeaveVoiceChannel", (msg) => reply(message, msg));
 		}
 	}, config.autoLeaveTimout * 1000);
 }
@@ -138,6 +138,32 @@ function sendBotString(string, headSendFunction, tailSendFunction, arg="", chunk
 	if(stringObj.enabled) safeSend(msg, headSendFunction, tailSendFunction, chunkDelimiter, charLimit);
 }
 
+// reply to a message with msg
+// mentions the user unless its private
+function reply(message, msg)
+{
+	if(message.guild) message.reply(msg);
+	else message.channel.send(msg);
+}
+
+// join the voice channel of the author
+function joinVoiceChannel(message)
+{
+	if(!message.guild)
+	{
+		sendBotString("onPrivateJoinVoiceChannelFail", (msg) => reply(message, msg));
+	}
+	else if(message.member.voiceChannel)
+	{
+		message.member.voiceChannel.join().then(connection => {
+			sendBotString("onJoinVoiceChannel", (msg) => reply(message, msg));
+		}).catch(console.log);
+		voiceEvent(message.guild);
+	} else {
+		sendBotString("onJoinVoiceChannelFail", (msg) => reply(message, msg));
+	}
+}
+
 // map of commands
 const commands = {};
 
@@ -153,28 +179,18 @@ function registerCommand(names, f)
 
 // the commands
 // join a voice channel
-registerCommand(["join", "voice", "enter", "invite"], (arg, args, message) => {
-	if(message.member.voiceChannel)
-	{
-		message.member.voiceChannel.join().then(connection => {
-			sendBotString("onJoinVoiceChannel", (msg) => message.reply(msg));
-		}).catch(console.log);
-		voiceEvent(message.guild);
-	} else {
-		sendBotString("onJoinVoiceChannelFail", (msg) => message.reply(msg));
-	}
-});
+registerCommand(["join", "voice", "enter", "invite"], (arg, args, message) => joinVoiceChannel(message));
 
 // stop playing a tune
 registerCommand(["stop", "quit", "quiet", "end"], (arg, args, message) => {
 	if(playingStatus[message.guild.id])
 	{
 		dispatchers[message.guild.id].end();
-		sendBotString("onStopTune", (msg) => message.reply(msg));
+		sendBotString("onStopTune", (msg) => reply(message, msg));
 	}
 	else
 	{
-		sendBotString("onNotPlayingTune", (msg) => message.reply(msg));
+		sendBotString("onNotPlayingTune", (msg) => reply(message, msg));
 	}
 	voiceEvent(message.guild);
 });
@@ -184,12 +200,12 @@ registerCommand(["leave", "exit", "part"], (arg, args, message) => {
 	const voiceConnection = getVoiceConnection(message.guild);
 	if(!voiceConnection)
 	{
-		sendBotString("onLeaveVoiceChannelFail", (msg) => message.reply(msg));
+		sendBotString("onLeaveVoiceChannelFail", (msg) => reply(message, msg));
 	}
 	else
 	{
 		voiceConnection.disconnect();
-		sendBotString("onLeaveVoiceChannel", (msg) => message.reply(msg));
+		sendBotString("onLeaveVoiceChannel", (msg) => reply(message, msg));
 	}
 	if(timers[message.guild]) clearTimeout(timers[message.guild]);
 });
@@ -198,7 +214,7 @@ registerCommand(["leave", "exit", "part"], (arg, args, message) => {
 registerCommand(["again", "repeat", "encore"], (arg, args, message) => {
 	if(playSound(message))
 	{
-		sendBotString("onEncore", (msg) => message.reply(msg));
+		sendBotString("onEncore", (msg) => reply(message, msg));
 		voiceEvent(message.guild);
 	}
 });
@@ -224,17 +240,17 @@ registerCommand(["examples", "examples", "tunes", "songs"], (arg, args, message)
 		const example = config.examples[key];
 		return `**${key}**:${ example.credit ? ` _(sequenced by ${example.credit})_` : " " }\`\`\`${config.trigger}${example.example}\`\`\``;
 	});
-	sendBotString("onExampleRequest", (msg) => message.reply(msg), (msg) => message.channel.send(msg), `\n\n${ls.join("\n\n")}`, "\n\n");
+	sendBotString("onExampleRequest", (msg) => reply(message, msg), (msg) => message.channel.send(msg), `\n\n${ls.join("\n\n")}`, "\n\n");
 });
 
 // get general help
 registerCommand(["help", "commands", "about", "info"], (arg, args, message) => {
-	sendBotString("onHelpRequest", (msg) => message.reply(msg), (msg) => message.channel.send(msg));
+	sendBotString("onHelpRequest", (msg) => reply(message, msg), (msg) => message.channel.send(msg));
 });
 
 // see the composing tutorial
 registerCommand(["tutorial", "composing", "how", "howto"], (arg, args, message) => {
-	sendBotString("onTutorialRequest", (msg) => message.reply(msg), (msg) => message.channel.send(msg));
+	sendBotString("onTutorialRequest", (msg) => reply(message, msg), (msg) => message.channel.send(msg));
 });
 
 // evaluate and play a musical expression
@@ -248,7 +264,7 @@ registerCommand(["play", "tune"], (arg, args, message) => {
 	catch(error)
 	{
 		console.log(`\t-> Invalid musical expression!\n${error}`);
-		sendBotString("onTuneError", (msg) => message.reply(msg));
+		sendBotString("onTuneError", (msg) => reply(message, msg));
 	}
 	voiceEvent(message.guild);
 });

@@ -57,6 +57,11 @@ config.botStrings = {
 		string: "You should go into a voice channel first, silly! :3",
 		enabled: true,
 	},
+	// when someone tries to get it to join a private call
+	"onPrivateJoinVoiceChannelFail": {
+		string: "I'm not allowed to join private calls, I'm really sorry!! ><",
+		enabled: true,
+	},
 	// when it leaves the voice channel
 	"onLeaveVoiceChannel": {
 		string: "Okay, I left... :c",
@@ -70,7 +75,7 @@ config.botStrings = {
 	// when it leaves the voice channel automatically
 	"onLeaveVoiceChannel": {
 		string: "I left the voice channel because it was lonely in there...",
-		enabled: false,
+		enabled: true,
 	},
 	// when you ask it to play the tune again
 	"onEncore": {
