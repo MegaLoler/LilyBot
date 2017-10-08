@@ -306,6 +306,13 @@ function processBotMessage(msg, message)
 		commands.play(msg, words, message);
 }
 
+// remove mentions of the bot from a message
+function removeMentions(msg)
+{
+	const mention = `<@${client.user.id}>`;
+	return msg.replace(new RegExp(mention, "g"), "");
+}
+
 // make the discord connection
 const client = new discord.Client();
 
@@ -322,17 +329,19 @@ client.on("message", message => {
 	if(client.user.id === message.author.id) return;
 
 	// figure out if a message is directed at the bot or not
-        const content = message.cleanContent.trim();
+        const content = message.content.trim();
         const dm = !message.guild;
         const triggered = content.startsWith(config.trigger);
 	const pinged = message.mentions.users.has(client.user.id);
-	console.log(pinged);
 	const inBotChannel = message.channel.name === config.botChannel;
-	const msg = triggered ? content.slice(config.trigger.length) : content;
+	const msg = triggered ? content.slice(config.trigger.length).trim() :
+		pinged ? removeMentions(content).trim() : content;
 	if(msg.length && (dm || triggered || inBotChannel || pinged))
 	{
 		// received message directed at the bot
-		console.log(`${message.guild.name}> #${message.channel.name}> ${message.author.username}> ${msg}`);
+		if(dm) console.log(`${message.author.username}> ${msg}`);
+		else console.log(`${message.guild.name}> #${message.channel.name}> ${message.author.username}> ${msg}`);
+
 		// go handle the message to the bot
 		processBotMessage(msg, message);
 	}
