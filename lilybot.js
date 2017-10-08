@@ -350,8 +350,8 @@ client.on("message", message => {
 	if(msg.length && (dm || triggered || inBotChannel || mentioned))
 	{
 		// received message directed at the bot
-		if(dm) console.log(`${message.author.username}> ${msg}`);
-		else console.log(`${message.guild.name}> #${message.channel.name}> ${message.author.username}> ${msg}`);
+		if(dm) console.log(`${message.author.tag}> ${msg}`);
+		else console.log(`${message.guild.name}> #${message.channel.name}> ${message.author.tag}> ${msg}`);
 
 		// go handle the message to the bot
 		processBotMessage(msg, message);
