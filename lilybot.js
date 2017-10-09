@@ -1,9 +1,12 @@
 // todo:
+// parse code blocks without 'lily' if its directed at you anyway...
+// doesnt detect corrupt midi files??
 // tunebots language
 // proper commands listing with descriptions and stuff (and config file aliases)
 // give arguments to most commands so you can call commands for other users (eg invite for others)
 // permissions based on server roles?
 // pdf output option??? idk
+// rename the midi files you request something other than 'stratch.midi' ?
 // more elegant javascript in general :3 async ?? promises? ? i got lot to learn
 //   more elegant logging system?? use console objects features??
 //   figure out why sometimes playing doesnt work???????
@@ -30,6 +33,7 @@ const timers = {};
 function makeLilyPondScore(code)
 {
 	return `
+\\version "2.18.2"
 \\header { 
   tagline = ""
 } 
