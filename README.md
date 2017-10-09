@@ -17,6 +17,7 @@ Node.js dependencies:
 
 Command line dependencies:
 `lilypond`
+`mogrify`
 `timidity++`
 
 ## Run
