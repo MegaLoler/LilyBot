@@ -1,5 +1,6 @@
 // todo:
 // doesnt detect corrupt midi files??
+// sandbox lilypond
 // minimize dependencies...
 // pdf output option??? idk
 // send and request lilypond files
@@ -64,7 +65,7 @@ function runCommand(cmd, args, callback, errorCallback)
         });
         
         child.stderr.on("data", (data) => {
-		console.error(`${cmd}: ${data}`);
+		if(config.testing) console.error(`${cmd}: ${data}`);
         });
         
         child.on("close", (code) => {
