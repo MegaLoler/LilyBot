@@ -84,7 +84,7 @@ function renderMidi(inFile, outFile, callback, errorCallback)
 // also use to output midi
 function convertLilyPond(inFile, outFile, callback, errorCallback)
 {
-	runCommand("lilypond", ["-fpng", "-o", `${trimFileExtension(outFile)}`, inFile], () => {
+	runCommand("lilypond", ["-dsafe", "-fpng", "-o", `${trimFileExtension(outFile)}`, inFile], () => {
 		runCommand("mogrify", ["-trim", outFile], callback, errorCallback);
 	}, errorCallback);
 }
