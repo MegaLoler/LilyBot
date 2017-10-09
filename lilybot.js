@@ -1,5 +1,4 @@
 // todo:
-// minimize dependencies...
 // give mogrify out a small border
 // send and request lilypond files
 // proper commands listing with descriptions and stuff (and config file aliases)
@@ -11,7 +10,7 @@
 //   permissions based on server roles?
 //   save tunes from users
 // more elegant javascript in general :3 async ?? promises? ? i got lot to learn
-//   fix those Synchronous fie exist checks
+//   fix those file rename callbacks?
 //   more elegant logging system?? use console objects features??
 //   figure out why sometimes playing doesnt work???????
 //   it outputs pdf, png, and midi all at once.. so get rid of duplicate code for that
@@ -23,7 +22,6 @@
 const { spawn } = require("child_process");
 const fs = require("fs");
 const https = require("https");
-const mkdirp = require("mkdirp");
 const discord = require("discord.js");
 
 // config
@@ -33,6 +31,8 @@ const config = require("./config");
 const playingStatus = {};
 const dispatchers = {};
 const timers = {};
+
+/* LANGUAGE INTERFACES */
 
 // lilypond templates...
 // template to output score and midi both
@@ -72,9 +72,15 @@ function runCommand(cmd, args, callback, errorCallback, stdoutCallback)
         });
         
         child.on("close", (code) => {
-		if(code || child.failed) errorCallback(`${cmd} exit status: ${code}`);
+		if((code || child.failed) && errorCallback) errorCallback(`${cmd} exit status: ${code}`);
 		else if(callback) callback(errorCallback);
         });
+}
+
+// make sure a directory exists in file system
+function assertPath(path, callback)
+{
+	runCommand("mkdir", ["-p", path], callback, console.error);
 }
 
 // render a midi file to a wav file with timidity
@@ -86,7 +92,7 @@ function renderMidi(inFile, outFile, callback, errorCallback)
 		});
 }
 
-// render sheet music png with lilypond
+// render sheet music png and pdf with lilypond
 // also use to output midi
 function convertLilyPond(inFile, outFile, callback, errorCallback)
 {
@@ -189,15 +195,6 @@ function downloadFile(url, path, callback, errorCallback)
 	}).on("error", (error) => {
 		fs.unlink(path);
 		if(errorCallback) errorCallback(error.message);
-	});
-}
-
-// make sure a directory exists in file system
-function assertPath(path, callback)
-{
-	mkdirp(path, (error) => {
-		if(error) console.error(error)
-		else callback();
 	});
 }
 

@@ -12,7 +12,6 @@ Or if you want to run the code yourself, continue reading.
 ## Dependencies
 
 Node.js dependencies:
-`mkdirp`
 `discord.js`
 
 Command line dependencies:
