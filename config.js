@@ -94,6 +94,11 @@ config.botStrings = {
 		string: "I left the voice channel because it was lonely in there...",
 		enabled: true,
 	},
+	// when you tell it to play something but it doesnt have anything to play
+	"onPlayFail": {
+		string: "I don't have anything to play yet! See `${config.trigger}help` to see how to give me things to play!",
+		enabled: true,
+	},
 	// when you tell it to play in private messages and it can't
 	"onPrivatePlayFail": {
 		string: "If you want me to play for you, you should ask me in a server! Sadly I'm not allowed to play for people privately. :c",
@@ -107,6 +112,11 @@ config.botStrings = {
 	// when it fails to evaluate a musical expression
 	"onTuneError": {
 		string: "Mmm, I'm sorry, I couldn't figure that one out! ><",
+		enabled: true,
+	},
+	// when you send it an invalid midi file
+	"onCorruptMidiFile": {
+		string: "I had trouble reading that midi file, I'm sorry... o~o",
 		enabled: true,
 	},
 	// when you tell it to play something but it's not in a voice channel

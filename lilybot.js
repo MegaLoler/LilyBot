@@ -1,5 +1,4 @@
 // todo:
-// ```lily ...``` addressing
 // scratch files auto gen directories n stuff
 // lilypond functions
 // more elegant logging system?? use console objects features??
@@ -185,7 +184,33 @@ function reply(message, msg)
 
 /* COMMAND FUNCTIONS AND INFRASTRUCTURE */
 
-// just perform the join of the voice channel of the member of the message
+// subcommand to post the sheet music scratch file
+function giveSheets(message)
+{
+	const file = getGuildScratchFile(message.guild, "png");
+	// reply to the user with the file
+}
+
+// subcommand to play the resulting wav file
+// complains if nothing to play
+// return success
+function doPlay(message)
+{
+	if(requestToPlay(message))
+	{
+		const file = getGuildScratchFile(message.guild, "wav");
+		if(file exists)
+		{
+			playSound(file, message.guild);
+			voiceEvent(message.guild);
+			return true;
+		}
+		else sendBotString("onPlayFail", (msg) => reply(message, msg));
+	}
+	return false;
+}
+
+// subcommand just to perform the join of the voice channel of the member of the message
 function doJoin(message, verbose=true)
 {
 	message.member.voiceChannel.join().then(connection => {
@@ -256,34 +281,51 @@ function leaveVoiceChannel(message)
 	}
 }
 
-// respond with playing the tune
-function playTune(tune, message)
+// the "auto" command to auto decide whether you want sheets or to hear
+// the command that is assumed when you don't give a command at all
+// if you are in voice then it'll play it for you
+// otherwise it'll give you sheets
+function autoCommand(code, message)
 {
-	if(requestToPlay(message))
+	if(message.member.voiceChannel) playTune(code, message);
+	else requestSheets(code, message);
+}
+
+// respond with sheet music to the tune!
+function requestSheets(code, message)
+{
+	// two versions of this command:
+	// no args: render sheets of the last input ly code and show it
+	// lilypond code: save lilypond, render it then show it
+	if(code) save ly
+	if(render sheets) giveSheets(message);
+	else sendBotString("onTuneError", (msg) => reply(message, msg));
+}
+
+// respond with playing the tune
+function playTune(code, message)
+{
+	// three versions of this command:
+	// no args: play last file (just like encore)
+	// file arg: receive midi and render and play it
+	// lilypond code: save lilypond, convert to midi, render, play
+	if(file)
 	{
-		try
-		{
-			// this is going to be totally redone
-			playSound(getGuildScratchFile(message.guild), message.guild);
-		}
-		catch(error)
-		{
-			console.log(`\t-> Invalid musical expression!\n${error}`);
-			sendBotString("onTuneError", (msg) => reply(message, msg));
-		}
-		voiceEvent(message.guild);
+		if(save midi file && render midi) doPlay(message);
+		else sendBotString("onCorruptMidiFile", (msg) => reply(message, msg));
 	}
+	else if(code)
+	{
+		if(save ly && convert to midi && render midi) doPlay(message);
+		else sendBotString("onTuneError", (msg) => reply(message, msg));
+	}
+	else doPlay(message);
 }
 
 // repeat the last tune
 function repeatTune(message)
 {
-	if(requestToPlay(message))
-	{
-		playSound(getGuildScratchFile(message.guild, "wav"), message.guild);
-		sendBotString("onEncore", (msg) => reply(message, msg));
-		voiceEvent(message.guild);
-	}
+	if(doPlay(message)) sendBotString("onEncore", (msg) => reply(message, msg));
 }
 
 // stop playing in the channel of the guild the message is from
@@ -348,9 +390,11 @@ function registerCommand(names, f)
 // register the commands
 registerCommand(["join", "voice", "enter", "hello", "come", "comeon", "here"], (arg, args, message) => joinVoiceChannel(message));
 registerCommand(["leave", "exit", "part", "bye", "get", "shoo", "goaway", "nasty"], (arg, args, message) => leaveVoiceChannel(message));
-registerCommand(["play", "tune"], (arg, args, message) => playTune(arg, message));
-registerCommand(["stop", "quit", "quiet", "end"], (arg, args, message) => stopPlayingTune(message));
+registerCommand(["auto"], (arg, args, message) => autoCommand(arg, message));
+registerCommand(["sheets", "sheet", "sheetmusic", "notation", "render", "look", "see", "draw", "type", "score"], (arg, args, message) => requestSheets(arg, message));
+registerCommand(["play", "tune", "listen", "hear", "sound", "audio", "wav", "midi"], (arg, args, message) => playTune(arg, message));
 registerCommand(["again", "repeat", "encore"], (arg, args, message) => repeatTune(message));
+registerCommand(["stop", "quit", "quiet", "end"], (arg, args, message) => stopPlayingTune(message));
 registerCommand(["help", "commands", "about", "info"], (arg, args, message) => requestHelp(message));
 registerCommand(["tutorial", "composing", "how", "howto"], (arg, args, message) => requestTutorial(message));
 registerCommand(["examples", "example", "tunes", "songs", "list", "songlist", "tunelist", "sample", "samples", "juke", "jukebox"], (arg, args, message) => requestExamples(message));
@@ -385,9 +429,9 @@ function processBotMessage(msg, message)
 	});
 
 	// execute the command
-	// assume play function if none other found
+	// assume "auto" command if none other found
 	if(!executeCommand(cmd, arg, args, message))
-		commands.play(msg, words, message);
+		commands.auto(msg, words, message);
 }
 
 // remove mentions of the bot from a message
