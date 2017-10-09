@@ -1,8 +1,8 @@
 // todo:
 // doesnt detect corrupt midi files??
-// sandbox lilypond
 // minimize dependencies...
 // pdf output option??? idk
+// give mogrify out a small border
 // send and request lilypond files
 // proper commands listing with descriptions and stuff (and config file aliases)
 // give arguments to most commands so you can call commands for other users (eg invite for others)
@@ -18,6 +18,7 @@
 //   figure out why sometimes playing doesnt work???????
 // redo help, tutorial, examples, and personality
 //   use discord emoji yo
+// merge lambot into lilybot?? with lilypond scheme??
 
 // libraries
 const { spawn } = require("child_process");
@@ -55,21 +56,24 @@ ${code}
 /* EXTERNAL COMMANDS */
 
 // run an external command
-function runCommand(cmd, args, callback, errorCallback)
+function runCommand(cmd, args, callback, errorCallback, stdoutCallback)
 {
 	const { spawn } = require("child_process");
         const child = spawn(cmd, args);
+	child.failed = false;
         
         child.stdout.on("data", (data) => {
 		if(config.testing) console.log(`${cmd}: ${data}`);
+		if(stdoutCallback) stdoutCallback(data, child);
         });
         
         child.stderr.on("data", (data) => {
 		if(config.testing) console.error(`${cmd}: ${data}`);
+		if(stdoutCallback) stdoutCallback(data, child);
         });
         
         child.on("close", (code) => {
-		if(code) errorCallback(code);
+		if(code || child.failed) errorCallback(`${cmd} exit status: ${code}`);
 		else if(callback) callback(errorCallback);
         });
 }
@@ -77,7 +81,10 @@ function runCommand(cmd, args, callback, errorCallback)
 // render a midi file to a wav file with timidity
 function renderMidi(inFile, outFile, callback, errorCallback)
 {
-	runCommand("timidity", [inFile, "-Ow", "-o", outFile], callback, errorCallback);
+	runCommand("timidity", [inFile, "-Ow", "-o", outFile], callback, errorCallback, (data, child) =>
+		{
+			if(data.toString().indexOf("Not a MIDI file!" != -1)) child.failed = true;
+		});
 }
 
 // render sheet music png with lilypond
@@ -176,11 +183,13 @@ function downloadFile(url, path, callback, errorCallback)
 	const request = https.get(url, (response) => {
 		response.pipe(file);
 		file.on("finish", () => {
-			file.close(callback);
+			file.close(() => {
+				callback(errorCallback);
+			});
 		});
 	}).on("error", (error) => {
 		fs.unlink(path);
-		if(errorCallback) callback(error.message);
+		if(errorCallback) errorCallback(error.message);
 	});
 }
 
