@@ -16,6 +16,8 @@ Node.js dependencies:
 
 Command line dependencies:
 `lilypond`
+`midi2ly`
+`python2.6`
 `mogrify`
 `timidity++`
 
