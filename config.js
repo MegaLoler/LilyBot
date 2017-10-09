@@ -24,6 +24,25 @@ config.scratchDirectory = "scratch";
 config.fileSendName = "lilybot";
 config.tokenFile = "token.txt"
 
+// bot command aliases
+// these are what the users type in to interact with the bot
+config.commands = {};
+config.commands.joinVoiceChannel = ["join", "voice", "enter", "hello", "come", "comeon", "here"];
+config.commands.leaveVoiceChannel = ["leave", "exit", "part", "bye", "get", "shoo", "goaway", "nasty"];
+config.commands.autoCommand = ["auto"];
+config.commands.requestSheets = ["sheets", "sheet", "sheetmusic", "notation", "png", "render", "look", "see", "draw", "type", "score"];
+config.commands.requestMidiFile = ["midi", "download", "file", "save", "request", "mid", "get"];
+config.commands.requestLilyPondFile = ["lily", "ly", "lilypond", "lyfile", "lilyfile", "lilypondfile", "getly", "getlily", "getlilypondfile"];
+config.commands.requestPdfFile = ["pdf", "document", "downloadsheet", "downloadsheets", "print", "printsheet", "printsheets"];
+config.commands.playTune = ["play", "tune", "listen", "hear", "sound", "audio", "wav"];
+config.commands.repeatTune = ["again", "repeat", "encore"];
+config.commands.stopPlayingTune = ["stop", "quit", "quiet", "end"];
+config.commands.requestHelp = ["help", "commands", "about", "info"];
+config.commands.requestTutorial = ["tutorial", "composing", "how", "howto"];
+config.commands.requestExamples = ["examples", "example", "tunes", "songs", "list", "songlist", "tunelist", "sample", "samples", "juke", "jukebox"];
+config.commands.requestInviteLink = ["invite", "link", "server", "discord"];
+config.commands.requestGithubLink = ["github", "git", "code", "dev", "developer", "creator", "about", "writer", "author", "owner"];
+
 // links
 const inviteLink = "https://discordapp.com/oauth2/authorize?client_id=366712156898590720&scope=bot&permissions=0";
 const githubLink = "https://github.com/MegaLoler/LilyBot";

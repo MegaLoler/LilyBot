@@ -1,10 +1,21 @@
 // todo:
 // proper commands listing with descriptions and stuff (and config file aliases)
 // give arguments to most commands so you can call commands for other users (eg invite for others)
-// give mogrify out a small border ?? ?
-// different language options
+// midi to lilypond!!
+// for now ill just make a simple tunebot2ly converter that is compatible with old tunebot
+// different language options OVERHAUL!!!
+//   actually just make a tunebot2ly compiler????????
+//   and encorporate all kinds of xxx2ly things????
 //   tunebots language
 //   different lilypond templates
+//   clean up all that duplicate code in the requesting different things back.. with attachments esp.
+//   make files only be converted as they are needed..........
+//     have a web of conversion paths based on the compilers available...
+//   redo the CONVERSION system alltogethr.......
+//     inputs: file, in chat code
+//     outputs: file, in chat (text voice or file)
+//     input formats...... various frontends
+//     output formats....... various backends
 // server specific config
 //   permissions based on server roles?
 //   save tunes from users
@@ -16,10 +27,11 @@
 // redo help, tutorial, examples, and personality
 //   use discord emoji yo
 // merge lambot into lilybot?? with lilypond scheme??
-// make files only be converted as they are needed..........
-// midi to lilypond!!
+// give mogrify out a small border ?? ?
+// cache???
 // play/request wavs/mp3s?
-// clean up all that duplicate code in the requesting different things back.. with attachments esp.
+// watch out for bot conversation loops!!!! and watch out for dos'ing
+// tuner?? jam sessions? record from voice and convert to midi/sheets?
 
 // libraries
 const { spawn } = require("child_process");
@@ -378,7 +390,7 @@ function reply(message, msg)
 	else message.channel.send(msg);
 }
 
-/* COMMAND FUNCTIONS AND INFRASTRUCTURE */
+/* BOT SUBCOMMANDS */
 
 // send a file in response to message
 function doSend(file, message, callback)
@@ -509,8 +521,10 @@ function requestToPlay(message, successCallback, failCallback)
 	if(failCallback) failCallback();
 }
 
+/* BOT COMMAND FUNCTIONS */
+
 // join the voice channel of the author
-function joinVoiceChannel(message)
+function joinVoiceChannel(arg, args, message)
 {
 	if(!message.guild) sendBotString("onPrivateJoinVoiceChannelFail", (msg) => reply(message, msg));
 	else if(message.member.voiceChannel) doJoin(message);
@@ -518,7 +532,7 @@ function joinVoiceChannel(message)
 }
 
 // leave the voice channel its in
-function leaveVoiceChannel(message)
+function leaveVoiceChannel(arg, args, message)
 {
 	if(!message.guild) sendBotString("onPrivateLeaveVoiceChannelFail", (msg) => reply(message, msg));
 	else
@@ -539,7 +553,7 @@ function leaveVoiceChannel(message)
 // if you are in voice then it'll play it for you
 // or if you send a file (expected to be midi)
 // otherwise it'll give you sheets
-function autoCommand(code, message)
+function autoCommand(code, args, message)
 {
 	const attachment = message.attachments.first();
 	const midiFile = attachment && hasExtension(attachment.filename, ["mid", "midi"]);
@@ -550,7 +564,7 @@ function autoCommand(code, message)
 }
 
 // respond with the pdf of the tune!
-function requestPdfFile(code, message)
+function requestPdfFile(code, args, message)
 {
 	// two versions of this command:
 	// no args: render sheets of the last input ly code and show it
@@ -586,7 +600,7 @@ function requestPdfFile(code, message)
 }
 
 // respond with sheet music to the tune!
-function requestSheets(code, message)
+function requestSheets(code, args, message)
 {
 	// two versions of this command:
 	// no args: render sheets of the last input ly code and show it
@@ -622,7 +636,7 @@ function requestSheets(code, message)
 }
 
 // respond with lilypond file
-function requestLilyPondFile(code, message)
+function requestLilyPondFile(code, args, message)
 {
 	// two versions of this command:
 	// no args: send existing lily file if there is one
@@ -656,7 +670,7 @@ function requestLilyPondFile(code, message)
 }
 
 // respond with midi file
-function requestMidiFile(code, message)
+function requestMidiFile(code, args, message)
 {
 	// two versions of this command:
 	// no args: send existing midi file if there is one
@@ -701,7 +715,7 @@ function requestMidiFile(code, message)
 }
 
 // respond with playing the tune
-function playTune(code, message)
+function playTune(code, args, message)
 {
 	// three versions of this command:
 	// no args: play last file (just like encore)
@@ -765,7 +779,7 @@ function playTune(code, message)
 }
 
 // repeat the last tune
-function repeatTune(message)
+function repeatTune(arg, args, message)
 {
 	doPlay(message, () => {
 		sendBotString("onEncore", (msg) => reply(message, msg));
@@ -773,7 +787,7 @@ function repeatTune(message)
 }
 
 // stop playing in the channel of the guild the message is from
-function stopPlayingTune(message)
+function stopPlayingTune(arg, args, message)
 {
 	if(message.guild && stopSound(message.guild))
 	{
@@ -784,7 +798,7 @@ function stopPlayingTune(message)
 }
 
 // respond to the message with examples
-function requestExamples(message)
+function requestExamples(arg, args, message)
 {
 	// get the list of example strings
 	const ls = Object.keys(config.examples).map((key) => {
@@ -795,25 +809,25 @@ function requestExamples(message)
 }
 
 // respond with help message
-function requestHelp(message)
+function requestHelp(arg, args, message)
 {
 	sendBotString("onHelpRequest", (msg) => reply(message, msg), (msg) => message.channel.send(msg));
 }
 
 // respond with tutorial message
-function requestTutorial(message)
+function requestTutorial(arg, args, message)
 {
 	sendBotString("onTutorialRequest", (msg) => reply(message, msg), (msg) => message.channel.send(msg));
 }
 
 // respond with discord server invite link in private messages
-function requestInviteLink(message)
+function requestInviteLink(arg, args, message)
 {
 	sendBotString("onInviteLinkRequest", (msg) => message.author.send(msg));
 }
 
 // respond with github link in private messages
-function requestGithubLink(message)
+function requestGithubLink(arg, args, message)
 {
 	sendBotString("onGithubLinkRequest", (msg) => message.author.send(msg));
 }
@@ -832,21 +846,21 @@ function registerCommand(names, f)
 }
 
 // register the commands
-registerCommand(["join", "voice", "enter", "hello", "come", "comeon", "here"], (arg, args, message) => joinVoiceChannel(message));
-registerCommand(["leave", "exit", "part", "bye", "get", "shoo", "goaway", "nasty"], (arg, args, message) => leaveVoiceChannel(message));
-registerCommand(["auto"], (arg, args, message) => autoCommand(arg, message));
-registerCommand(["sheets", "sheet", "sheetmusic", "notation", "png", "render", "look", "see", "draw", "type", "score"], (arg, args, message) => requestSheets(arg, message));
-registerCommand(["midi", "download", "file", "save", "request", "mid", "get"], (arg, args, message) => requestMidiFile(arg, message));
-registerCommand(["lily", "ly", "lilypond", "lyfile", "lilyfile", "lilypondfile", "getly", "getlily", "getlilypondfile"], (arg, args, message) => requestLilyPondFile(arg, message));
-registerCommand(["pdf", "document", "downloadsheet", "downloadsheets", "print", "printsheet", "printsheets"], (arg, args, message) => requestPdfFile(arg, message));
-registerCommand(["play", "tune", "listen", "hear", "sound", "audio", "wav"], (arg, args, message) => playTune(arg, message));
-registerCommand(["again", "repeat", "encore"], (arg, args, message) => repeatTune(message));
-registerCommand(["stop", "quit", "quiet", "end"], (arg, args, message) => stopPlayingTune(message));
-registerCommand(["help", "commands", "about", "info"], (arg, args, message) => requestHelp(message));
-registerCommand(["tutorial", "composing", "how", "howto"], (arg, args, message) => requestTutorial(message));
-registerCommand(["examples", "example", "tunes", "songs", "list", "songlist", "tunelist", "sample", "samples", "juke", "jukebox"], (arg, args, message) => requestExamples(message));
-registerCommand(["invite", "link", "server", "discord"], (arg, args, message) => requestInviteLink(message));
-registerCommand(["github", "git", "code", "dev", "developer", "creator", "about", "writer", "author", "owner"], (arg, args, message) => requestGithubLink(message));
+registerCommand(config.commands.joinVoiceChannel, joinVoiceChannel);
+registerCommand(config.commands.leaveVoiceChannel, leaveVoiceChannel);
+registerCommand(config.commands.autoCommand, autoCommand);
+registerCommand(config.commands.requestSheets, requestSheets);
+registerCommand(config.commands.requestMidiFile, requestMidiFile);
+registerCommand(config.commands.requestLilyPondFile, requestLilyPondFile);
+registerCommand(config.commands.requestPdfFile, requestPdfFile);
+registerCommand(config.commands.playTune, playTune);
+registerCommand(config.commands.repeatTune, repeatTune);
+registerCommand(config.commands.stopPlayingTune, stopPlayingTune);
+registerCommand(config.commands.requestHelp, requestHelp);
+registerCommand(config.commands.requestTutorial, requestTutorial);
+registerCommand(config.commands.requestExamples, requestExamples);
+registerCommand(config.commands.requestInviteLink, requestInviteLink);
+registerCommand(config.commands.requestGithubLink, requestGithubLink);
 
 /* MAIN BOT INTERFACE */
 
