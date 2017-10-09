@@ -1,5 +1,4 @@
 // todo:
-// doesnt detect corrupt midi files??
 // minimize dependencies...
 // pdf output option??? idk
 // give mogrify out a small border
@@ -16,6 +15,7 @@
 // more elegant javascript in general :3 async ?? promises? ? i got lot to learn
 //   more elegant logging system?? use console objects features??
 //   figure out why sometimes playing doesnt work???????
+//   it outputs pdf, png, and midi all at once.. so get rid of duplicate code for that
 // redo help, tutorial, examples, and personality
 //   use discord emoji yo
 // merge lambot into lilybot?? with lilypond scheme??
@@ -91,7 +91,7 @@ function renderMidi(inFile, outFile, callback, errorCallback)
 // also use to output midi
 function convertLilyPond(inFile, outFile, callback, errorCallback)
 {
-	runCommand("lilypond", ["-dsafe", "-fpng", "-o", `${trimFileExtension(outFile)}`, inFile], () => {
+	runCommand("lilypond", ["-dsafe", "-fpdf", "-fpng", "-o", `${trimFileExtension(outFile)}`, inFile], () => {
 		runCommand("mogrify", ["-trim", outFile], callback, errorCallback);
 	}, errorCallback);
 }
@@ -366,11 +366,18 @@ function doSend(file, message)
 	else sendBotString("onSendFail", (msg) => reply(message, msg));
 }
 
-// subcommand to post the sheet music scratch file
+// subcommand to post the pdf sheet music scratch file
 function giveSheets(message)
 {
 	if(message.guild) getGuildScratchFile(message.guild, "png", (file) => doSend(file, message));
 	else getUserScratchFile(message.author, "png", (file) => doSend(file, message));
+}
+
+// subcommand to post the png sheet music scratch file
+function givePdf(message)
+{
+	if(message.guild) getGuildScratchFile(message.guild, "pdf", (file) => doSend(file, message));
+	else getUserScratchFile(message.author, "pdf", (file) => doSend(file, message));
 }
 
 // subcommand to post the sheet music scratch file
@@ -484,6 +491,26 @@ function autoCommand(code, message)
 	const attachment = message.attachments.first();
 	if(attachment || (message.guild && message.member.voiceChannel)) playTune(code, message);
 	else requestSheets(code, message);
+}
+
+// respond with the pdf of the tune!
+function requestPdfFile(code, message)
+{
+	// two versions of this command:
+	// no args: render sheets of the last input ly code and show it
+	// lilypond code: save lilypond, render it then show it
+	if(code)
+	{
+		saveLilyPondFile(code, message.author, message.guild, (errorCallback) => {
+			renderScratchSheetMusic(message.author, message.guild, (errorCallback) => {
+				givePdf(message);
+			}, errorCallback);
+		}, (error) => {
+			console.error(error);
+			sendBotString("onTuneError", (msg) => reply(message, msg));
+		});
+	}
+	else givePdf(message);
 }
 
 // respond with sheet music to the tune!
@@ -646,6 +673,7 @@ registerCommand(["leave", "exit", "part", "bye", "get", "shoo", "goaway", "nasty
 registerCommand(["auto"], (arg, args, message) => autoCommand(arg, message));
 registerCommand(["sheets", "sheet", "sheetmusic", "notation", "render", "look", "see", "draw", "type", "score"], (arg, args, message) => requestSheets(arg, message));
 registerCommand(["midi", "download", "file", "save", "request", "mid", "get"], (arg, args, message) => requestMidiFile(arg, message));
+registerCommand(["pdf", "document", "downloadsheet", "downloadsheets", "print", "printsheet", "printsheets"], (arg, args, message) => requestPdfFile(arg, message));
 registerCommand(["play", "tune", "listen", "hear", "sound", "audio", "wav"], (arg, args, message) => playTune(arg, message));
 registerCommand(["again", "repeat", "encore"], (arg, args, message) => repeatTune(message));
 registerCommand(["stop", "quit", "quiet", "end"], (arg, args, message) => stopPlayingTune(message));
