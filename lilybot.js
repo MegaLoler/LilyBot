@@ -727,7 +727,7 @@ client.on("message", message => {
 			// if it was given code blocks, the first block is the arg string
 			// and the command is the first word (if any)
 			// i find this ugly parsing, allowing for unclosed blocks and all, w/e
-			const parts = msg.split(blockCodeLily ? blockCodeHeadLily : blockCode);
+			const parts = msg.split(blockCodeLily ? blockCodeHeadLily : blockCodeHead);
 			const words = parts[0].split(/\s+/g);
 			const cmd = words[0].toLowerCase();
 			const arg = parts[1].split("```")[0].trim();
