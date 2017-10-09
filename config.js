@@ -134,6 +134,16 @@ config.botStrings = {
 		string: "Mmm, I'm sorry, I couldn't figure that one out! ><",
 		enabled: true,
 	},
+	// when you send it something other than an .ly or .mid/.midi file when that's what it needs
+	"onNeedMidiOrLilyPondFile": {
+		string: "I need a midi file (`.mid` `.midi`) or a LilyPond file (`.ly`) to do anything! :c",
+		enabled: true,
+	},
+	// when you send it something other than an .ly file when that's what it needs
+	"onNeedLilyPondFile": {
+		string: "I need a LilyPond file (`.ly`) to do that! :c",
+		enabled: true,
+	},
 	// when you send it an invalid midi file
 	"onCorruptMidiFile": {
 		string: "I had trouble reading that midi file, I'm sorry... o~o",

@@ -1,8 +1,7 @@
 // todo:
-// give mogrify out a small border
-// send and request lilypond files
 // proper commands listing with descriptions and stuff (and config file aliases)
 // give arguments to most commands so you can call commands for other users (eg invite for others)
+// give mogrify out a small border ?? ?
 // different language options
 //   tunebots language
 //   different lilypond templates
@@ -17,6 +16,10 @@
 // redo help, tutorial, examples, and personality
 //   use discord emoji yo
 // merge lambot into lilybot?? with lilypond scheme??
+// make files only be converted as they are needed..........
+// midi to lilypond!!
+// play/request wavs/mp3s?
+// clean up all that duplicate code in the requesting different things back.. with attachments esp.
 
 // libraries
 const { spawn } = require("child_process");
@@ -138,6 +141,14 @@ function saveScratchMidi(attachment, user, guild, callback, errorCallback)
 	});
 }
 
+// download the scratch lilypond file from the attachment url
+function saveAttachedLilyPondFile(attachment, user, guild, callback, errorCallback)
+{
+	getGuildScratchFile(guild, "ly", (file) => {
+		downloadFile(attachment.url, file, callback, errorCallback);
+	});
+}
+
 // render the scratch lilypond file to the scratch midi file with lilypond
 function convertToScratchMidi(user, guild, callback, errorCallback)
 {
@@ -196,6 +207,19 @@ function downloadFile(url, path, callback, errorCallback)
 		fs.unlink(path);
 		if(errorCallback) errorCallback(error.message);
 	});
+}
+
+// does this filename have any of these extensions?
+function hasExtension(filename, extensions)
+{
+	return extensions.indexOf(getFileExtension(filename)) != -1;
+}
+
+// get the file extension of a filename
+function getFileExtension(filename)
+{
+	const re = /(?:\.([^.]+))?$/;
+	return re.exec(filename)[1];
 }
 
 // trim the file extension off a filename
@@ -395,11 +419,18 @@ function givePdf(message, callback)
 	else getUserScratchFile(message.author, "pdf", (file) => doSend(file, message, callback));
 }
 
-// subcommand to post the sheet music scratch file
+// subcommand to post the midi scratch file
 function giveMidiFile(message, callback)
 {
 	if(message.guild) getGuildScratchFile(message.guild, "midi", (file) => doSend(file, message, callback));
 	else getUserScratchFile(message.author, "midi", (file) => doSend(file, message, callback));
+}
+
+// subcommand to post the lilypond scratch file
+function giveLilyPondFile(message, callback)
+{
+	if(message.guild) getGuildScratchFile(message.guild, "ly", (file) => doSend(file, message, callback));
+	else getUserScratchFile(message.author, "ly", (file) => doSend(file, message, callback));
 }
 
 // subcommand to play the resulting wav file
@@ -511,8 +542,11 @@ function leaveVoiceChannel(message)
 function autoCommand(code, message)
 {
 	const attachment = message.attachments.first();
-	if(attachment || (message.guild && message.member.voiceChannel)) playTune(code, message);
-	else requestSheets(code, message);
+	const midiFile = attachment && hasExtension(attachment.filename, ["mid", "midi"]);
+	const lilyFile = attachment && hasExtension(attachment.filename, ["ly"]);
+	if(midiFile || (message.guild && message.member.voiceChannel)) playTune(code, message);
+	else if(!attachment || lilyFile) requestSheets(code, message);
+	else sendBotString("onNeedMidiOrLilyPondFile", (msg) => reply(message, msg));
 }
 
 // respond with the pdf of the tune!
@@ -521,7 +555,23 @@ function requestPdfFile(code, message)
 	// two versions of this command:
 	// no args: render sheets of the last input ly code and show it
 	// lilypond code: save lilypond, render it then show it
-	if(code)
+	const attachment = message.attachments.first();
+	if(attachment)
+	{
+		if(hasExtension(attachment.filename, ["ly"]))
+		{
+			saveAttachedLilyPondFile(attachment, message.author, message.guild, (errorCallback) => {
+				renderScratchSheetMusic(message.author, message.guild, (errorCallback) => {
+					givePdf(message);
+				}, errorCallback);
+			}, (error) => {
+				console.error(error);
+				sendBotString("onTuneError", (msg) => reply(message, msg));
+			});
+		}
+		else sendBotString("onNeedLilyPondFile", (msg) => reply(message, msg));
+	}
+	else if(code)
 	{
 		saveLilyPondFile(code, message.author, message.guild, (errorCallback) => {
 			renderScratchSheetMusic(message.author, message.guild, (errorCallback) => {
@@ -541,7 +591,23 @@ function requestSheets(code, message)
 	// two versions of this command:
 	// no args: render sheets of the last input ly code and show it
 	// lilypond code: save lilypond, render it then show it
-	if(code)
+	const attachment = message.attachments.first();
+	if(attachment)
+	{
+		if(hasExtension(attachment.filename, ["ly"]))
+		{
+			saveAttachedLilyPondFile(attachment, message.author, message.guild, (errorCallback) => {
+				renderScratchSheetMusic(message.author, message.guild, (errorCallback) => {
+					giveSheets(message);
+				}, errorCallback);
+			}, (error) => {
+				console.error(error);
+				sendBotString("onTuneError", (msg) => reply(message, msg));
+			});
+		}
+		else sendBotString("onNeedLilyPondFile", (msg) => reply(message, msg));
+	}
+	else if(code)
 	{
 		saveLilyPondFile(code, message.author, message.guild, (errorCallback) => {
 			renderScratchSheetMusic(message.author, message.guild, (errorCallback) => {
@@ -555,13 +621,72 @@ function requestSheets(code, message)
 	else giveSheets(message);
 }
 
+// respond with lilypond file
+function requestLilyPondFile(code, message)
+{
+	// two versions of this command:
+	// no args: send existing lily file if there is one
+	// lilypond code: save lilypond, then send it back
+	const attachment = message.attachments.first();
+	if(attachment)
+	{
+		if(hasExtension(attachment.filename, ["ly"]))
+		{
+			saveAttachedLilyPondFile(attachment, message.author, message.guild, (errorCallback) => {
+				convertToScratchMidi(message.author, message.guild, (errorCallback) => {
+					giveLilyPondFile(message);
+				}, errorCallback);
+			}, (error) => {
+				console.error(error);
+				sendBotString("onTuneError", (msg) => reply(message, msg));
+			});
+		}
+		else sendBotString("onNeedLilyPondFile", (msg) => reply(message, msg));
+	}
+	else if(code)
+	{
+		saveLilyPondFile(code, message.author, message.guild, (errorCallback) => {
+			giveLilyPondFile(message);
+		}, (error) => {
+			console.error(error);
+			sendBotString("onTuneError", (msg) => reply(message, msg));
+		});
+	}
+	else giveLilyPondFile(message);
+}
+
 // respond with midi file
 function requestMidiFile(code, message)
 {
 	// two versions of this command:
 	// no args: send existing midi file if there is one
 	// lilypond code: save lilypond, convert to midi, then send it
-	if(code)
+	const attachment = message.attachments.first();
+	if(attachment)
+	{
+		if(hasExtension(attachment.filename, ["mid", "midi"]))
+		{
+			saveScratchMidi(attachment, message.author, message.guild, (errorCallback) => {
+				giveMidiFile(message);
+			}, (error) => {
+				console.error(error);
+				sendBotString("onCorruptMidiFile", (msg) => reply(message, msg));
+			});
+		}
+		else if(hasExtension(attachment.filename, ["ly"]))
+		{
+			saveAttachedLilyPondFile(attachment, message.author, message.guild, (errorCallback) => {
+				convertToScratchMidi(message.author, message.guild, (errorCallback) => {
+					giveMidiFile(message);
+				}, errorCallback);
+			}, (error) => {
+				console.error(error);
+				sendBotString("onTuneError", (msg) => reply(message, msg));
+			});
+		}
+		else sendBotString("onNeedMidiOrLilyPondFile", (msg) => reply(message, msg));
+	}
+	else if(code)
 	{
 		saveLilyPondFile(code, message.author, message.guild, (errorCallback) => {
 			convertToScratchMidi(message.author, message.guild, (errorCallback) => {
@@ -587,14 +712,31 @@ function playTune(code, message)
 		const attachment = message.attachments.first();
 		if(attachment)
 		{
-			saveScratchMidi(attachment, message.author, message.guild, (errorCallback) => {
-				renderScratchMidi(message.author, message.guild, (errorCallback) => {
-					doPlay(message);
-				}, errorCallback);
-			}, (error) => {
-				console.error(error);
-				sendBotString("onCorruptMidiFile", (msg) => reply(message, msg));
-			});
+			if(hasExtension(attachment.filename, ["mid", "midi"]))
+			{
+				saveScratchMidi(attachment, message.author, message.guild, (errorCallback) => {
+					renderScratchMidi(message.author, message.guild, (errorCallback) => {
+						doPlay(message);
+					}, errorCallback);
+				}, (error) => {
+					console.error(error);
+					sendBotString("onCorruptMidiFile", (msg) => reply(message, msg));
+				});
+			}
+			else if(hasExtension(attachment.filename, ["ly"]))
+			{
+				saveAttachedLilyPondFile(attachment, message.author, message.guild, (errorCallback) => {
+					convertToScratchMidi(message.author, message.guild, (errorCallback) => {
+						renderScratchMidi(message.author, message.guild, (errorCallback) => {
+							doPlay(message);
+						}, errorCallback);
+					}, errorCallback);
+				}, (error) => {
+					console.error(error);
+					sendBotString("onTuneError", (msg) => reply(message, msg));
+				});
+			}
+			else sendBotString("onNeedMidiOrLilyPondFile", (msg) => reply(message, msg));
 		}
 		else if(code)
 		{
@@ -695,6 +837,7 @@ registerCommand(["leave", "exit", "part", "bye", "get", "shoo", "goaway", "nasty
 registerCommand(["auto"], (arg, args, message) => autoCommand(arg, message));
 registerCommand(["sheets", "sheet", "sheetmusic", "notation", "png", "render", "look", "see", "draw", "type", "score"], (arg, args, message) => requestSheets(arg, message));
 registerCommand(["midi", "download", "file", "save", "request", "mid", "get"], (arg, args, message) => requestMidiFile(arg, message));
+registerCommand(["lily", "ly", "lilypond", "lyfile", "lilyfile", "lilypondfile", "getly", "getlily", "getlilypondfile"], (arg, args, message) => requestLilyPondFile(arg, message));
 registerCommand(["pdf", "document", "downloadsheet", "downloadsheets", "print", "printsheet", "printsheets"], (arg, args, message) => requestPdfFile(arg, message));
 registerCommand(["play", "tune", "listen", "hear", "sound", "audio", "wav"], (arg, args, message) => playTune(arg, message));
 registerCommand(["again", "repeat", "encore"], (arg, args, message) => repeatTune(message));
