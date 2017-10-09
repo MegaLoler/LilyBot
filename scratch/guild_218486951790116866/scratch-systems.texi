@@ -1,0 +1,2 @@
+@image{scratch-1}
+@c eof

@@ -1,16 +1,19 @@
 // todo:
-// scratch files auto gen directories n stuff
-// lilypond functions
-// more elegant logging system?? use console objects features??
-// more elegant javascript in general :3
-// proper commands listing
-// permissions based on server roles?
-// use discord emoji yo
+// pdf??? idk
+// redo help, tutorial, examples, and personality
+//   use discord emoji yo
+// proper commands listing with descriptions and stuff
 // give arguments to most commands so you can call commands for other users
+// permissions based on server roles?
+// more elegant javascript in general :3 async ?? promises? ? i got lot to learn
+//   more elegant logging system?? use console objects features??
+//   figure out why sometimes playing doesnt work???????
 
 // libraries
 const { spawn } = require("child_process");
 const fs = require("fs");
+const https = require("https");
+const mkdirp = require("mkdirp");
 const discord = require("discord.js");
 
 // config
@@ -21,29 +24,169 @@ const playingStatus = {};
 const dispatchers = {};
 const timers = {};
 
+// lilypond templates...
+// template to output score and midi both
+function makeLilyPondScore(code)
+{
+	return `
+\\header { 
+  tagline = ""
+} 
+\\score {
+\\new Staff \\relative {
+${code}
+}
+\\layout { }
+\\midi { }
+}`
+}
+
 /* EXTERNAL COMMANDS */
 
-// render a midi file to a wav file with timidity
-function renderMidi(inFile, outFile, callback)
+// run an external command
+function runCommand(cmd, args, callback, errorCallback)
 {
 	const { spawn } = require("child_process");
-        const child = spawn("timidity", [`${inFile}.mid`, "-Ow", "-o", `${outFile}.wav`]);
+        const child = spawn(cmd, args);
         
         child.stdout.on("data", (data) => {
-		if(config.testing) console.log(`timidity: ${data}`);
+		if(config.testing) console.log(`${cmd}: ${data}`);
         });
         
         child.stderr.on("data", (data) => {
-		if(config.testing) console.error(`timidity: ${data}`);
+		console.error(`${cmd}: ${data}`);
         });
         
         child.on("close", (code) => {
-		if(config.testing || code) console.log(`timidity exit code: ${code}`);
-		if(callback) callback();
+		if(code) errorCallback(code);
+		else if(callback) callback(errorCallback);
         });
 }
 
+// render a midi file to a wav file with timidity
+function renderMidi(inFile, outFile, callback, errorCallback)
+{
+	runCommand("timidity", [inFile, "-Ow", "-o", outFile], callback, errorCallback);
+}
+
+// render sheet music png with lilypond
+// also use to output midi
+function convertLilyPond(inFile, outFile, callback, errorCallback)
+{
+	runCommand("lilypond", ["-fpng", "-o", `${trimFileExtension(outFile)}`, inFile], () => {
+		runCommand("mogrify", ["-trim", outFile], callback, errorCallback);
+	}, errorCallback);
+}
+
 /* BOT UTILITY FUNCTIONS */
+
+// save the lilypond code into the scratch lilypond file
+function saveLilyPondFile(code, user, guild, callback, errorCallback)
+{
+	if(code)
+	{
+		if(guild)
+		{
+			getGuildScratchFile(guild, "ly", (file) => {
+				fs.writeFile(file, makeLilyPondScore(code), "utf8", (error) => {
+					if(error) errorCallback(error);
+					else callback(errorCallback);
+				});
+			});
+		}
+		else
+		{
+			getUserScratchFile(user, "ly", (file) => {
+				fs.writeFile(file, makeLilyPondScore(code), "utf8", (error) => {
+					if(error) errorCallback(error);
+					else callback(errorCallback);
+				});
+			});
+		}
+	}
+	else callback();
+}
+
+// download the scratch midi file from the attachment url
+function saveScratchMidi(attachment, user, guild, callback, errorCallback)
+{
+	getGuildScratchFile(guild, "midi", (file) => {
+		downloadFile(attachment.url, file, callback, errorCallback);
+	});
+}
+
+// render the scratch lilypond file to the scratch midi file with lilypond
+function convertToScratchMidi(user, guild, callback, errorCallback)
+{
+	getGuildScratchFile(guild, "ly", (lilyFile) => {
+		// doing this so mogrify sees png
+		// lily pond doesnt care
+		getGuildScratchFile(guild, "png", (imageFile) => {
+			convertLilyPond(lilyFile, imageFile, callback, errorCallback);
+		});
+	});
+}
+
+// render the scratch midi file to the scratch wav file with timidity
+function renderScratchMidi(user, guild, callback, errorCallback)
+{
+	getGuildScratchFile(guild, "midi", (midiFile) => {
+		getGuildScratchFile(guild, "wav", (waveFile) => {
+			renderMidi(midiFile, waveFile, callback, errorCallback);
+		});
+	});
+}
+
+// render the scratch lilypond file to scratch sheet music file with lilypond
+function renderScratchSheetMusic(user, guild, callback, errorCallback)
+{
+	if(guild)
+	{
+		getGuildScratchFile(guild, "ly", (lilyFile) => {
+			getGuildScratchFile(guild, "png", (imageFile) => {
+				convertLilyPond(lilyFile, imageFile, callback, errorCallback);
+			});
+		});
+	}
+	else
+	{
+		getUserScratchFile(user, "ly", (lilyFile) => {
+			getUserScratchFile(user, "png", (imageFile) => {
+				convertLilyPond(lilyFile, imageFile, callback, errorCallback);
+			});
+		});
+	}
+}
+
+// download a file from a url
+function downloadFile(url, path, callback, errorCallback)
+{
+	const file = fs.createWriteStream(path);
+	const request = https.get(url, (response) => {
+		response.pipe(file);
+		file.on("finish", () => {
+			file.close(callback);
+		});
+	}).on("error", (error) => {
+		fs.unlink(path);
+		if(errorCallback) callback(error.message);
+	});
+}
+
+// make sure a directory exists in file system
+function assertPath(path, callback)
+{
+	mkdirp(path, (error) => {
+		if(error) console.error(error)
+		else callback();
+	});
+}
+
+// trim the file extension off a filename
+function trimFileExtension(filename)
+{
+	return filename.replace(/\.[^/.]+$/, "");
+}
 
 // get the scratch directory for a user
 function getUserScratchPath(user)
@@ -58,15 +201,21 @@ function getGuildScratchPath(guild)
 }
 
 // get the scratch file of an extension for a user
-function getUserScratchFile(user, extension)
+function getUserScratchFile(user, extension, callback)
 {
-	return `${getUserScratchPath(user)}/scratch.${extension}`;
+	const path = getUserScratchPath(user);
+	assertPath(path, () => {
+		callback(`${path}/scratch.${extension}`);
+	});
 }
 
 // get the scratch file of an extension for a guild
-function getGuildScratchFile(guild, extension)
+function getGuildScratchFile(guild, extension, callback)
 {
-	return `${getGuildScratchPath(guild)}/scratch.${extension}`;
+	const path = getGuildScratchPath(guild);
+	assertPath(path, () => {
+		callback(`${path}/scratch.${extension}`);
+	});
 }
 
 // get the voice connection (if connected) of a guild
@@ -184,49 +333,73 @@ function reply(message, msg)
 
 /* COMMAND FUNCTIONS AND INFRASTRUCTURE */
 
+// send a file in response to message
+function doSend(file, message)
+{
+	// MAKE ASYNC
+	if(fs.existsSync(file))
+	{
+		sendBotString("onSendFile", (msg) => message.reply(msg, {
+			files: [file]
+		}));
+	}
+	else sendBotString("onSendFail", (msg) => reply(message, msg));
+}
+
 // subcommand to post the sheet music scratch file
 function giveSheets(message)
 {
-	const file = getGuildScratchFile(message.guild, "png");
-	// reply to the user with the file
+	if(message.guild) getGuildScratchFile(message.guild, "png", (file) => doSend(file, message));
+	else getUserScratchFile(message.author, "png", (file) => doSend(file, message));
+}
+
+// subcommand to post the sheet music scratch file
+function giveMidiFile(message)
+{
+	if(message.guild) getGuildScratchFile(message.guild, "midi", (file) => doSend(file, message));
+	else getUserScratchFile(message.author, "midi", (file) => doSend(file, message));
 }
 
 // subcommand to play the resulting wav file
 // complains if nothing to play
-// return success
-function doPlay(message)
+function doPlay(message, successCallback)
 {
-	if(requestToPlay(message))
-	{
-		const file = getGuildScratchFile(message.guild, "wav");
-		if(file exists)
-		{
-			playSound(file, message.guild);
-			voiceEvent(message.guild);
-			return true;
-		}
-		else sendBotString("onPlayFail", (msg) => reply(message, msg));
-	}
-	return false;
+	requestToPlay(message, () => {
+		getGuildScratchFile(message.guild, "wav", (file) => {
+			// MAKE ASYNC
+			if(fs.existsSync(file))
+			{
+				playSound(file, message.guild);
+				voiceEvent(message.guild);
+				if(successCallback) successCallback();
+			}
+			else sendBotString("onPlayFail", (msg) => reply(message, msg));
+		});
+	});
 }
 
 // subcommand just to perform the join of the voice channel of the member of the message
-function doJoin(message, verbose=true)
+function doJoin(message, callback, verbose=true)
 {
 	message.member.voiceChannel.join().then(connection => {
 		if(verbose) sendBotString("onJoinVoiceChannel", (msg) => reply(message, msg));
+		voiceEvent(message.guild);
+		if(callback) callback();
 	}).catch(console.log);
-	voiceEvent(message.guild);
 }
 
 // a "subcommand" to try to auto join a channel if set in config , if not already in there
 // return whether in or getting in
-function tryAutoJoin(message)
+function tryAutoJoin(message, callback)
 {
-	if(getVoiceConnection(message.guild)) return true;
-	else if(config.autoJoin)
+	if(getVoiceConnection(message.guild))
 	{
-		doJoin(message, false);
+		callback();
+		return true;
+	}
+	else if(config.autoJoin && message.member.voiceChannel)
+	{
+		doJoin(message, callback, false);
 		return true;
 	}
 	else return false;
@@ -246,14 +419,14 @@ function tryAutoStop(message)
 }
 
 // a "subcommand" to handle wanting to play something
-// returns whether can play or not
-function requestToPlay(message)
+// success callback when can play, fail callback when can't
+function requestToPlay(message, successCallback, failCallback)
 {
 	if(!message.guild) sendBotString("onPrivatePlayFail", (msg) => reply(message, msg));
-	else if(!tryAutoJoin(message)) sendBotString("onNotInVoiceChannel", (msg) => reply(message, msg));
 	else if(!tryAutoStop(message)) sendBotString("onAlreadyPlayingTune", (msg) => reply(message, msg));
-	else return true;
-	return false;
+	else if(!tryAutoJoin(message, successCallback)) sendBotString("onNotInVoiceChannel", (msg) => reply(message, msg));
+	else return;
+	if(failCallback) failCallback();
 }
 
 // join the voice channel of the author
@@ -284,10 +457,12 @@ function leaveVoiceChannel(message)
 // the "auto" command to auto decide whether you want sheets or to hear
 // the command that is assumed when you don't give a command at all
 // if you are in voice then it'll play it for you
+// or if you send a file (expected to be midi)
 // otherwise it'll give you sheets
 function autoCommand(code, message)
 {
-	if(message.member.voiceChannel) playTune(code, message);
+	const attachment = message.attachments.first();
+	if(attachment || (message.guild && message.member.voiceChannel)) playTune(code, message);
 	else requestSheets(code, message);
 }
 
@@ -297,9 +472,38 @@ function requestSheets(code, message)
 	// two versions of this command:
 	// no args: render sheets of the last input ly code and show it
 	// lilypond code: save lilypond, render it then show it
-	if(code) save ly
-	if(render sheets) giveSheets(message);
-	else sendBotString("onTuneError", (msg) => reply(message, msg));
+	if(code)
+	{
+		saveLilyPondFile(code, message.author, message.guild, (errorCallback) => {
+			renderScratchSheetMusic(message.author, message.guild, (errorCallback) => {
+				giveSheets(message);
+			}, errorCallback);
+		}, (error) => {
+			console.error(error);
+			sendBotString("onTuneError", (msg) => reply(message, msg));
+		});
+	}
+	else giveSheets(message);
+}
+
+// respond with midi file
+function requestMidiFile(code, message)
+{
+	// two versions of this command:
+	// no args: send existing midi file if there is one
+	// lilypond code: save lilypond, convert to midi, then send it
+	if(code)
+	{
+		saveLilyPondFile(code, message.author, message.guild, (errorCallback) => {
+			renderScratchMidi(message.author, message.guild, (errorCallback) => {
+				giveMidiFile(message);
+			}, errorCallback);
+		}, (error) => {
+			console.error(error);
+			sendBotString("onTuneError", (msg) => reply(message, msg));
+		});
+	}
+	else giveMidiFile(message);
 }
 
 // respond with playing the tune
@@ -309,23 +513,52 @@ function playTune(code, message)
 	// no args: play last file (just like encore)
 	// file arg: receive midi and render and play it
 	// lilypond code: save lilypond, convert to midi, render, play
-	if(file)
+	if(message.guild)
 	{
-		if(save midi file && render midi) doPlay(message);
-		else sendBotString("onCorruptMidiFile", (msg) => reply(message, msg));
+		const attachment = message.attachments.first();
+		if(attachment)
+		{
+			saveScratchMidi(attachment, message.author, message.guild, (errorCallback) => {
+				renderScratchMidi(message.author, message.guild, (errorCallback) => {
+					doPlay(message);
+				}, errorCallback);
+			}, (error) => {
+				console.error(error);
+				sendBotString("onCorruptMidiFile", (msg) => reply(message, msg));
+			});
+		}
+		else if(code)
+		{
+			saveLilyPondFile(code, message.author, message.guild, (errorCallback) => {
+				convertToScratchMidi(message.author, message.guild, (errorCallback) => {
+					renderScratchMidi(message.author, message.guild, (errorCallback) => {
+						doPlay(message);
+					}, errorCallback);
+				}, (error) => {
+					console.error(error);
+					sendBotString("onTuneError", (msg) => reply(message, msg));
+				});
+			});
+		}
+		else
+		{
+			renderScratchMidi(message.author, message.guild, (errorCallback) => {
+				doPlay(message);
+			}, (error) => {
+				console.error(error);
+				sendBotString("onCorruptMidiFile", (msg) => reply(message, msg));
+			});
+		}
 	}
-	else if(code)
-	{
-		if(save ly && convert to midi && render midi) doPlay(message);
-		else sendBotString("onTuneError", (msg) => reply(message, msg));
-	}
-	else doPlay(message);
+	else sendBotString("onPrivatePlayFail", (msg) => reply(message, msg));
 }
 
 // repeat the last tune
 function repeatTune(message)
 {
-	if(doPlay(message)) sendBotString("onEncore", (msg) => reply(message, msg));
+	doPlay(message, () => {
+		sendBotString("onEncore", (msg) => reply(message, msg));
+	});
 }
 
 // stop playing in the channel of the guild the message is from
@@ -392,7 +625,8 @@ registerCommand(["join", "voice", "enter", "hello", "come", "comeon", "here"], (
 registerCommand(["leave", "exit", "part", "bye", "get", "shoo", "goaway", "nasty"], (arg, args, message) => leaveVoiceChannel(message));
 registerCommand(["auto"], (arg, args, message) => autoCommand(arg, message));
 registerCommand(["sheets", "sheet", "sheetmusic", "notation", "render", "look", "see", "draw", "type", "score"], (arg, args, message) => requestSheets(arg, message));
-registerCommand(["play", "tune", "listen", "hear", "sound", "audio", "wav", "midi"], (arg, args, message) => playTune(arg, message));
+registerCommand(["midi", "download", "file", "save", "request", "mid", "get"], (arg, args, message) => requestMidiFile(arg, message));
+registerCommand(["play", "tune", "listen", "hear", "sound", "audio", "wav"], (arg, args, message) => playTune(arg, message));
 registerCommand(["again", "repeat", "encore"], (arg, args, message) => repeatTune(message));
 registerCommand(["stop", "quit", "quiet", "end"], (arg, args, message) => stopPlayingTune(message));
 registerCommand(["help", "commands", "about", "info"], (arg, args, message) => requestHelp(message));
@@ -422,7 +656,7 @@ function processBotMessage(msg, message)
 	// cmd is case insensitive, args retain case
 	const words = msg.split(/\s+/g);
 	const cmd = words[0].toLowerCase();
-	const arg = words.slice(1).join(" ");
+	const arg = msg.slice(msg.indexOf(cmd) + cmd.length);
 	// remove empty args
 	const args = words.slice(1).filter((v) => {
 		return v.length;
@@ -459,6 +693,7 @@ client.on("message", message => {
 	// figure out if a message is directed at the bot or not
 	// and extract the intended message to the bot
         const content = message.content.trim();
+	const attachment = message.attachments.first();
         const dm = !message.guild;
         const triggered = content.startsWith(config.trigger);
 	const mentioned = message.mentions.users.has(client.user.id);
@@ -468,7 +703,10 @@ client.on("message", message => {
 	const clean = mentioned ? removeMentions(content).trim() : content;
 	// i don't like that this is var and not const
 	var msg = triggered ? clean.slice(config.trigger.length).trim() : clean;
-	if(msg.length && (dm || triggered || mentioned || inBotChannel || blockCode))
+
+	// care only if it isn't empty or has an attachment
+	// that and must be addressing the bot in some way
+	if((msg.length || attachment) && (dm || triggered || mentioned || inBotChannel || blockCode))
 	{
 		// first check to see if it was addressed by code block
 		// if so, extract the intended command from the message
@@ -498,8 +736,12 @@ client.on("message", message => {
 // load the token from file and login
 function main()
 {
-	const token = fs.readFileSync("token.txt", "ascii").trim();
-	client.login(token);
+	if(fs.existsSync(config.tokenFile))
+	{
+		const token = fs.readFileSync(config.tokenFile, "ascii").trim();
+		client.login(token);
+	}
+	else console.error(`Please create the file "${config.tokenFile}" and put your Discord token inside.`);
 }
 
 // run the bot!

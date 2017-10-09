@@ -10,14 +10,16 @@ const config = {};
 // auto join when asked to play and not in voice yet
 // auto stop playing tune when asked to play and already playing one
 // code block alias is what to put after ``` to give block code to the bot
+// token file is the file to read the login token from
 config.testing = process.argv[2] == "test";
-config.trigger = config.testing ? "t##" : "##";
+config.trigger = config.testing ? "t&&" : "&&";
 config.botChannel = "lilybot";
 config.blockCodeAlias = "lily";
 config.autoLeaveTimout = 300; // 5 minutes
 config.autoJoin = true;
 config.autoStop = true;
 config.scratchDirectory = "scratch";
+config.tokenFile = "token.txt"
 
 // links
 const inviteLink = "https://discordapp.com/oauth2/authorize?client_id=366712156898590720&scope=bot&permissions=0";
@@ -94,14 +96,24 @@ config.botStrings = {
 		string: "I left the voice channel because it was lonely in there...",
 		enabled: true,
 	},
+	// when it sends you back sheet music
+	"onSendFile": {
+		string: "Here you go!",
+		enabled: true,
+	},
+	// when you ask for a file it doesn't have
+	"onSendFail": {
+		string: "I don't have anything to give you just yet! See `" + config.trigger + "help` to see how you can get something from me! :3",
+		enabled: true,
+	},
 	// when you tell it to play something but it doesnt have anything to play
 	"onPlayFail": {
-		string: "I don't have anything to play yet! See `${config.trigger}help` to see how to give me things to play!",
+		string: "I don't have anything to play yet! See `" + config.trigger + "help` to see how to give me things to play!",
 		enabled: true,
 	},
 	// when you tell it to play in private messages and it can't
 	"onPrivatePlayFail": {
-		string: "If you want me to play for you, you should ask me in a server! Sadly I'm not allowed to play for people privately. :c",
+		string: "If you want me to play for you, you should ask me in a server! Sadly I'm not allowed to play for people privately. :c\n(If you like, you can still ask me for a `" + config.trigger + "midi` file instead!)",
 		enabled: true,
 	},
 	// when you ask it to play the tune again
