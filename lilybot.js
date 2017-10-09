@@ -284,7 +284,10 @@ function voiceEvent(guild)
 		if(voiceConnection)
 		{
 			voiceConnection.disconnect();
-			sendBotString("onAutoLeaveVoiceChannel", (msg) => getBotChannel(guild).send(msg));
+			sendBotString("onAutoLeaveVoiceChannel", (msg) => {
+				const botChannel = getBotChannel(guild);
+				if(botChannel) botChannel.send(msg);
+			});
 		}
 	}, config.autoLeaveTimout * 1000);
 }
