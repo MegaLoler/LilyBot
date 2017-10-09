@@ -12,7 +12,7 @@ const config = {};
 // code block alias is what to put after ``` to give block code to the bot
 // token file is the file to read the login token from
 config.testing = process.argv[2] == "test";
-config.trigger = config.testing ? "t&&" : "&&";
+config.trigger = config.testing ? "t--" : "--";
 config.botChannel = "lilybot";
 config.blockCodeAlias = "lily";
 config.autoLeaveTimout = 300; // 5 minutes
@@ -41,21 +41,26 @@ If you don't tell me which speed to play at, I'll go at a \`normal\` speed, and 
 _Happy Composing!~~_`;
 
 // help message
-const helpString = `Hi! I'm **Tune Bot**!  I will play tunes for you that you can compose yourself and share with others! ^^
+const helpString = `Hi! I'm **LilyBot**!  I will make sheet music of tunes you compose, and I'll play them for you too in the voice channels! And you can and share them with others! ^^
 
 **Here's some stuff I can do:** _(Commands)_
 • \`${config.trigger}join\` — I'll join the voice channel you're in. :3
 • \`${config.trigger}leave\` — I'll leave the voice channel if you'd really prefer, though I like being in there. :c
+• \`${config.trigger}sheets\` — I'll make you up some sheets of the tune you give me, or one you already gave me. :3
+• \`${config.trigger}midi\` — I'll send you a midi file of the tune you give me, or one you already did!
+• \`${config.trigger}play\` — I'll play a tune you give me, or one you already gave me.
 • \`${config.trigger}stop\` — I'll stop playing the tune I'm playing.
 • \`${config.trigger}encore\` — If you really liked it, I'll play it for you again! :D
 • \`${config.trigger}help\` — I'll tell you about myself and what I can do for you~ ^^
 • \`${config.trigger}tutorial\` — I'll teach you how to make your very own tunes!
 • \`${config.trigger}instruments\` — I'll show you the list of instruments I can play.
 • \`${config.trigger}examples\` — I'll show you some examples of some tunes I can play for you. o:
+• \`${config.trigger}invite\` — If you like me a lot, you can invite me to your own Discord server!
+• \`${config.trigger}github\` — Visit my Github repository!
 
-**How to play tunes!** _(Quick Start)_
-First, make sure I'm in a voice channel (if I'm not, you can invite be to one by going into one yourself and then telling me to \`${config.trigger}join\` you.
-Once I'm in there, ask me to play _Bad Apple_ like this: \`\`\`${config.trigger}defg a- >dc <a-d- agfe defg a-gf edef edc#e defg a- >dc <a-d- agfe defg a-gf e.f.g.a.\`\`\`
+**How to make tunes!** _(Quick Start)_
+First, meet me in a voice channel. (I'll join you automatically when you ask me to play.) Then ask me to play _Bad Apple_ like this: \`\`\`${config.trigger}defg a- >dc <a-d- agfe defg a-gf edef edc#e defg a- >dc <a-d- agfe defg a-gf e.f.g.a.\`\`\`
+While you're at it, ask me for some \`${config.trigger}sheets\` of the tune! If you leave the voice channel I'll give you sheets automatically when you give me tunes.
 See my \`${config.trigger}examples\` for some more examples of tunes I can play for you!
 If you're interested in composing your own tunes, ask me about my \`${config.trigger}tutorial\`! :D`;
 
@@ -239,6 +244,200 @@ config.examples = {
 		example: "bass:2c--------2c#........2c--------2c#........2c------2c#......2c------2c#......2c----2c#....2c----2c#....2c--2c#..2c--2c#..2c--2c#..2c--2c#..2c.2c#.2c.2c#.2c.2c#.2c.2c#.:tuba:2c--------2c#........2c--------2c#........2c------2c#......2c------2c#......2c----2c#....2c----2c#....2c--2c#..2c--2c#..2c--2c#..2c--2c#..2c.2c#.2c.2c#.2c.2c#.2c.2c#.:cello:2c--------2c#........2c--------2c#........2c------2c#......2c------2c#......2c----2c#....2c----2c#....2c--2c#..2c--2c#..2c--2c#..2c--2c#..2c.2c#.2c.2c#.2c.2c#.2c.2c#.:choir:2c--------2c#........2c--------2c#........2c------2c#......2c------2c#......2c----2c#....2c----2c#....2c--2c#..2c--2c#..2c--2c#..2c--2c#..2c.2c#.2c.2c#.2c.2c#.2c.2c#.",
 		credit: "MasterFoxify",
 	}
+};
+
+// the instrument names and their midi program numbers
+config.programs = {
+        "piano": 0,
+        "bright": 1,
+        "electric-grand": 2,
+        "honky": 3,
+        "electric": 4,
+        "electric2": 5,
+        "harpsi": 6,
+        "clav": 7,
+        "celesta": 8,
+        "glocken": 9,
+        "music-box": 10,
+        "vibra": 11,
+        "marimba": 12,
+        "xylo": 13,
+        "bells": 14,
+        "dulcimer": 15,
+        "drawbar": 16,
+        "perc": 17,
+        "perc-organ": 17,
+        "rock": 18,
+        "rock-organ": 18,
+        "organ": 19,
+        "church-organ": 19,
+        "reed": 20,
+        "reed-organ": 20,
+        "accordian": 21,
+        "harmonica": 22,
+        "tango": 23,
+        "tango-accordian": 23,
+        "guitar": 24,
+        "nylon-guitar": 24,
+        "nylon": 24,
+        "steel": 25,
+        "steel-guitar": 25,
+        "jazz": 26,
+        "jazz-guitar": 26,
+        "clean": 27,
+        "clean-guitar": 27,
+        "mute": 28,
+        "mute-guitar": 28,
+        "overdrive": 29,
+        "overdrive-guitar": 29,
+        "dist": 30,
+        "dist-guitar": 30,
+        "distortion": 30,
+        "distortion-guitar": 30,
+        "harmonics": 31,
+        "acoustic": 32,
+        "acoustic-bass": 32,
+        "fingered": 33,
+        "fingered-bass": 33,
+        "bass": 33,
+        "pick": 34,
+        "pick-bass": 34,
+        "fretless": 35,
+        "fretless-bass": 35,
+        "slap": 36,
+        "slap-bass": 36,
+        "slap2": 37,
+        "slap-bass2": 37,
+        "synth": 38,
+        "synth-bass": 38,
+        "synth2": 39,
+        "synth-bass2": 39,
+        "violin": 40,
+        "viola": 41,
+        "cello": 42,
+        "contra": 43,
+        "contrabass": 43,
+        "tremolo": 44,
+        "pizz": 45,
+        "harp": 46,
+        "timpani": 47,
+        "strings": 48,
+        "strings2": 49,
+        "strings3": 50,
+        "strings4": 51,
+        "choir": 52,
+        "aah": 52,
+        "choir2": 53,
+        "ooh": 53,
+        "synth-voice": 54,
+        "hit": 55,
+        "orch-hit": 55,
+        "orchestral-hit": 55,
+        "trumpet": 56,
+        "trombone": 57,
+        "tuba": 58,
+        "mute": 59,
+        "mute-trumpet": 59,
+        "french": 60,
+        "french-horn": 60,
+        "brass": 61,
+        "brass2": 62,
+        "brass3": 63,
+        "sax": 64,
+        "soprano": 64,
+        "soprano-sax": 64,
+        "alto": 65,
+        "alto-sax": 65,
+        "tenor": 66,
+        "tenor-sax": 66,
+        "baritone": 67,
+        "baritone-sax": 67,
+        "oboe": 68,
+        "english": 69,
+        "english-horn": 69,
+        "horn": 69,
+        "bassoon": 70,
+        "clarinet": 71,
+        "piccolo": 72,
+        "flute": 73,
+        "recorder": 74,
+        "pan": 75,
+        "bottle": 76,
+        "shakuhachi": 77,
+        "whistle": 78,
+        "ocarina": 79,
+        "square": 80,
+        "saw": 81,
+        "caliope": 82,
+        "chiff": 83,
+        "charang": 84,
+        "voice": 85,
+        "fifth": 86,
+        "lead": 87,
+        "bass-lead": 87,
+        "new-age": 88,
+        "pad": 89,
+        "warm": 89,
+        "poly": 90,
+        "choir-pad": 91,
+        "bowed": 92,
+        "metal": 93,
+        "halo": 94,
+        "sweep": 95,
+        "rain": 96,
+        "soundtrack": 97,
+        "crystal": 98,
+        "atmosphere": 99,
+        "brightness": 100,
+        "goblins": 101,
+        "echoes": 102,
+        "scifi": 103,
+        "sitar": 104,
+        "banjo": 105,
+        "shamisen": 106,
+        "koto": 107,
+        "kalimba": 108,
+        "bagpipe": 109,
+        "fiddle": 110,
+        "shanai": 111,
+        "tinkle": 112,
+        "agogo": 113,
+        "steel": 114,
+        "steel-drum": 114,
+        "wood": 115,
+        "woodblock": 115,
+        "taiko": 116,
+        "tom": 117,
+        "synth-drum": 118,
+        "reverse": 119,
+        "reverse-cymbal": 119,
+        "fret": 120,
+        "guitar-fret": 120,
+        "breath": 121,
+        "sea": 122,
+        "shore": 122,
+        "seashore": 122,
+        "bird": 123,
+        "tweet": 123,
+        "telephone": 124,
+        "phone": 124,
+        "heli": 125,
+        "helicopter": 125,
+        "applause": 126,
+        "gunshot": 127,
+        "gun": 127,
+};
+
+// tempos the bot recognizes in musical expressions
+// bpms
+config.tempos = {
+        "normal": 90,
+        "fast": 120,
+        "faster": 180,
+        "fastest": 240,
+        "slow": 60,
+        "slower": 42,
+        "slowest": 24,
 };
 
 module.exports = config;

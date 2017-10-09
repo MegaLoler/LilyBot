@@ -1,13 +1,14 @@
 // todo:
-// pdf??? idk
-// redo help, tutorial, examples, and personality
-//   use discord emoji yo
-// proper commands listing with descriptions and stuff
-// give arguments to most commands so you can call commands for other users
+// tunebots language
+// proper commands listing with descriptions and stuff (and config file aliases)
+// give arguments to most commands so you can call commands for other users (eg invite for others)
 // permissions based on server roles?
+// pdf output option??? idk
 // more elegant javascript in general :3 async ?? promises? ? i got lot to learn
 //   more elegant logging system?? use console objects features??
 //   figure out why sometimes playing doesnt work???????
+// redo help, tutorial, examples, and personality
+//   use discord emoji yo
 
 // libraries
 const { spawn } = require("child_process");
@@ -495,7 +496,7 @@ function requestMidiFile(code, message)
 	if(code)
 	{
 		saveLilyPondFile(code, message.author, message.guild, (errorCallback) => {
-			renderScratchMidi(message.author, message.guild, (errorCallback) => {
+			convertToScratchMidi(message.author, message.guild, (errorCallback) => {
 				giveMidiFile(message);
 			}, errorCallback);
 		}, (error) => {
