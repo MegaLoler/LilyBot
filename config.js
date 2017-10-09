@@ -14,6 +14,7 @@ const config = {};
 config.testing = process.argv[2] == "test";
 config.trigger = config.testing ? "t--" : "--";
 config.botChannel = "lilybot";
+config.enableBotChannelAddressing = false;
 config.blockCodeAlias = "lily";
 config.autoLeaveTimout = 300; // 5 minutes
 config.autoJoin = true;

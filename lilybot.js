@@ -707,7 +707,7 @@ client.on("message", message => {
         const dm = !message.guild;
         const triggered = content.startsWith(config.trigger);
 	const mentioned = message.mentions.users.has(client.user.id);
-	const inBotChannel = message.channel.name === config.botChannel;
+	const inBotChannel = config.enableBotChannelAddressing && message.channel.name === config.botChannel;
 	const blockCodeHead = "```";
 	const blockCodeHeadLily = `\`\`\`${config.blockCodeAlias}\n`;
 	const blockCode = content.indexOf(blockCodeHead) != -1;
