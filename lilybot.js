@@ -1,13 +1,14 @@
 // todo:
-// parse code blocks without 'lily' if its directed at you anyway...
 // doesnt detect corrupt midi files??
 // minimize dependencies...
 // pdf output option??? idk
+// send and request lilypond files
 // proper commands listing with descriptions and stuff (and config file aliases)
 // give arguments to most commands so you can call commands for other users (eg invite for others)
 // rename the midi files you request something other than 'stratch.midi' ?
-// tunebots language
-// different lilypond templates
+// different language options
+//   tunebots language
+//   different lilypond templates
 // server specific config
 //   permissions based on server roles?
 //   save tunes from users
@@ -707,15 +708,17 @@ client.on("message", message => {
         const triggered = content.startsWith(config.trigger);
 	const mentioned = message.mentions.users.has(client.user.id);
 	const inBotChannel = message.channel.name === config.botChannel;
-	const blockCodeHead = `\`\`\`${config.blockCodeAlias}\n`;
+	const blockCodeHead = "```";
+	const blockCodeHeadLily = `\`\`\`${config.blockCodeAlias}\n`;
 	const blockCode = content.indexOf(blockCodeHead) != -1;
+	const blockCodeLily = content.indexOf(blockCodeHeadLily) != -1;
 	const clean = mentioned ? removeMentions(content).trim() : content;
 	// i don't like that this is var and not const
 	var msg = triggered ? clean.slice(config.trigger.length).trim() : clean;
 
 	// care only if it isn't empty or has an attachment
 	// that and must be addressing the bot in some way
-	if((msg.length || attachment) && (dm || triggered || mentioned || inBotChannel || blockCode))
+	if((msg.length || attachment) && (dm || triggered || mentioned || inBotChannel || blockCodeLily))
 	{
 		// first check to see if it was addressed by code block
 		// if so, extract the intended command from the message
@@ -724,7 +727,7 @@ client.on("message", message => {
 			// if it was given code blocks, the first block is the arg string
 			// and the command is the first word (if any)
 			// i find this ugly parsing, allowing for unclosed blocks and all, w/e
-			const parts = msg.split(blockCodeHead);
+			const parts = msg.split(blockCodeLily ? blockCodeHeadLily : blockCode);
 			const words = parts[0].split(/\s+/g);
 			const cmd = words[0].toLowerCase();
 			const arg = parts[1].split("```")[0].trim();
