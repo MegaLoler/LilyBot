@@ -1,11 +1,9 @@
 // todo:
 // minimize dependencies...
-// pdf output option??? idk
 // give mogrify out a small border
 // send and request lilypond files
 // proper commands listing with descriptions and stuff (and config file aliases)
 // give arguments to most commands so you can call commands for other users (eg invite for others)
-// rename the midi files you request something other than 'stratch.midi' ?
 // different language options
 //   tunebots language
 //   different lilypond templates
@@ -13,6 +11,7 @@
 //   permissions based on server roles?
 //   save tunes from users
 // more elegant javascript in general :3 async ?? promises? ? i got lot to learn
+//   fix those Synchronous fie exist checks
 //   more elegant logging system?? use console objects features??
 //   figure out why sometimes playing doesnt work???????
 //   it outputs pdf, png, and midi all at once.. so get rid of duplicate code for that
@@ -83,7 +82,7 @@ function renderMidi(inFile, outFile, callback, errorCallback)
 {
 	runCommand("timidity", [inFile, "-Ow", "-o", outFile], callback, errorCallback, (data, child) =>
 		{
-			if(data.toString().indexOf("Not a MIDI file!" != -1)) child.failed = true;
+			if(data.toString().indexOf("Not a MIDI file!") != -1) child.failed = true;
 		});
 }
 
@@ -312,9 +311,13 @@ function getBotChannel(guild)
 // and properly split up messages longer than _limit_ characters
 // callback is the send function for the first chunk
 // tail is for the rest
-function safeSend(msg, callback, callbackTail, chunkDelimiter="\n", charLimit=1800)
+function safeSend(msg, callback, callbackTail, chunkDelimiter="\n", charLimit=1800, doneCallback)
 {
-	if(!msg.trim().length) return;
+	if(!msg.trim().length)
+	{
+		if(doneCallback) doneCallback();
+		return;
+	}
 	var first = msg;
 	var rest = "";
 	// make this safer so it aborts if something can't be split small enough
@@ -331,16 +334,16 @@ function safeSend(msg, callback, callbackTail, chunkDelimiter="\n", charLimit=18
 		first = first.split(chunkDelimiter).slice(0, -1).join(chunkDelimiter);
 	}
 	callback(first);
-	safeSend(rest, callbackTail, callbackTail, chunkDelimiter, charLimit);
+	safeSend(rest, callbackTail, callbackTail, chunkDelimiter, charLimit, doneCallback);
 }
 
 // send a bot string from config file
 // with optional stuff after it (arg)
-function sendBotString(string, headSendFunction, tailSendFunction, arg="", chunkDelimiter, charLimit)
+function sendBotString(string, headSendFunction, tailSendFunction, arg="", chunkDelimiter, charLimit, doneCallback)
 {
 	const stringObj = config.botStrings[string];
 	const msg = stringObj.string + arg;
-	if(stringObj.enabled) safeSend(msg, headSendFunction, tailSendFunction, chunkDelimiter, charLimit);
+	if(stringObj.enabled) safeSend(msg, headSendFunction, tailSendFunction, chunkDelimiter, charLimit, doneCallback);
 }
 
 // reply to a message with msg
@@ -354,37 +357,49 @@ function reply(message, msg)
 /* COMMAND FUNCTIONS AND INFRASTRUCTURE */
 
 // send a file in response to message
-function doSend(file, message)
+function doSend(file, message, callback)
 {
-	// MAKE ASYNC
-	if(fs.existsSync(file))
-	{
-		sendBotString("onSendFile", (msg) => message.reply(msg, {
-			files: [file]
-		}));
-	}
-	else sendBotString("onSendFail", (msg) => reply(message, msg));
+	fs.access(file, fs.constants.R_OK, (error) => {
+		if(error)
+		{
+			console.log(error);
+			sendBotString("onSendFail", (msg) => reply(message, msg));
+		}
+		else
+		{
+			const movedFile = file.replace(/(.*)\/.*(\..*$)/, "$1/" + config.fileSendName + "$2");
+			fs.rename(file, movedFile, () => {
+				sendBotString("onSendFile", (msg) => {
+					message.reply(msg, {
+						files: [movedFile]
+					}).then(() => {
+						fs.rename(movedFile, file, callback);
+					}).catch(console.error);
+				});
+			});
+		}
+	});
 }
 
 // subcommand to post the pdf sheet music scratch file
-function giveSheets(message)
+function giveSheets(message, callback)
 {
-	if(message.guild) getGuildScratchFile(message.guild, "png", (file) => doSend(file, message));
-	else getUserScratchFile(message.author, "png", (file) => doSend(file, message));
+	if(message.guild) getGuildScratchFile(message.guild, "png", (file) => doSend(file, message, callback));
+	else getUserScratchFile(message.author, "png", (file) => doSend(file, message, callback));
 }
 
 // subcommand to post the png sheet music scratch file
-function givePdf(message)
+function givePdf(message, callback)
 {
-	if(message.guild) getGuildScratchFile(message.guild, "pdf", (file) => doSend(file, message));
-	else getUserScratchFile(message.author, "pdf", (file) => doSend(file, message));
+	if(message.guild) getGuildScratchFile(message.guild, "pdf", (file) => doSend(file, message, callback));
+	else getUserScratchFile(message.author, "pdf", (file) => doSend(file, message, callback));
 }
 
 // subcommand to post the sheet music scratch file
-function giveMidiFile(message)
+function giveMidiFile(message, callback)
 {
-	if(message.guild) getGuildScratchFile(message.guild, "midi", (file) => doSend(file, message));
-	else getUserScratchFile(message.author, "midi", (file) => doSend(file, message));
+	if(message.guild) getGuildScratchFile(message.guild, "midi", (file) => doSend(file, message, callback));
+	else getUserScratchFile(message.author, "midi", (file) => doSend(file, message, callback));
 }
 
 // subcommand to play the resulting wav file
@@ -393,14 +408,21 @@ function doPlay(message, successCallback)
 {
 	requestToPlay(message, () => {
 		getGuildScratchFile(message.guild, "wav", (file) => {
-			// MAKE ASYNC
-			if(fs.existsSync(file))
-			{
-				playSound(file, message.guild);
-				voiceEvent(message.guild);
-				if(successCallback) successCallback();
-			}
-			else sendBotString("onPlayFail", (msg) => reply(message, msg));
+			fs.access(file, fs.constants.R_OK, (error) => {
+				if(error)
+				{
+					console.log(error);
+					sendBotString("onPlayFail", (msg) => reply(message, msg));
+				}
+				else
+				{
+					playSound(file, message.guild);
+					voiceEvent(message.guild);
+					if(successCallback) successCallback();
+				}
+			});
+
+
 		});
 	});
 }
@@ -671,7 +693,7 @@ function registerCommand(names, f)
 registerCommand(["join", "voice", "enter", "hello", "come", "comeon", "here"], (arg, args, message) => joinVoiceChannel(message));
 registerCommand(["leave", "exit", "part", "bye", "get", "shoo", "goaway", "nasty"], (arg, args, message) => leaveVoiceChannel(message));
 registerCommand(["auto"], (arg, args, message) => autoCommand(arg, message));
-registerCommand(["sheets", "sheet", "sheetmusic", "notation", "render", "look", "see", "draw", "type", "score"], (arg, args, message) => requestSheets(arg, message));
+registerCommand(["sheets", "sheet", "sheetmusic", "notation", "png", "render", "look", "see", "draw", "type", "score"], (arg, args, message) => requestSheets(arg, message));
 registerCommand(["midi", "download", "file", "save", "request", "mid", "get"], (arg, args, message) => requestMidiFile(arg, message));
 registerCommand(["pdf", "document", "downloadsheet", "downloadsheets", "print", "printsheet", "printsheets"], (arg, args, message) => requestPdfFile(arg, message));
 registerCommand(["play", "tune", "listen", "hear", "sound", "audio", "wav"], (arg, args, message) => playTune(arg, message));
@@ -786,6 +808,7 @@ client.on("message", message => {
 // load the token from file and login
 function main()
 {
+	// this is sync but i suppose its fine here at the beginning
 	if(fs.existsSync(config.tokenFile))
 	{
 		const token = fs.readFileSync(config.tokenFile, "ascii").trim();

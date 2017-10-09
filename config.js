@@ -10,6 +10,7 @@ const config = {};
 // auto join when asked to play and not in voice yet
 // auto stop playing tune when asked to play and already playing one
 // code block alias is what to put after ``` to give block code to the bot
+// file send name is what to name the scratch files requested over discord
 // token file is the file to read the login token from
 config.testing = process.argv[2] == "test";
 config.trigger = config.testing ? "t--" : "--";
@@ -20,6 +21,7 @@ config.autoLeaveTimout = 300; // 5 minutes
 config.autoJoin = true;
 config.autoStop = true;
 config.scratchDirectory = "scratch";
+config.fileSendName = "lilybot";
 config.tokenFile = "token.txt"
 
 // links
