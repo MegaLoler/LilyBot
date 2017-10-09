@@ -1,12 +1,16 @@
 // todo:
 // parse code blocks without 'lily' if its directed at you anyway...
 // doesnt detect corrupt midi files??
-// tunebots language
+// minimize dependencies...
+// pdf output option??? idk
 // proper commands listing with descriptions and stuff (and config file aliases)
 // give arguments to most commands so you can call commands for other users (eg invite for others)
-// permissions based on server roles?
-// pdf output option??? idk
 // rename the midi files you request something other than 'stratch.midi' ?
+// tunebots language
+// different lilypond templates
+// server specific config
+//   permissions based on server roles?
+//   save tunes from users
 // more elegant javascript in general :3 async ?? promises? ? i got lot to learn
 //   more elegant logging system?? use console objects features??
 //   figure out why sometimes playing doesnt work???????
