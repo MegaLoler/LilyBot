@@ -52,6 +52,7 @@ const githubLink = "https://github.com/MegaLoler/LilyBot";
 const tutorialString = `**How to compose your own tunes!**
 _Basics:_
 After getting my attention by starting your message with \`${config.trigger}\`, just tell me what notes you'd like to play! (\`c d e f g a b\`) (Add a \`#\` after the letter name to raise it a half step, and add a \`&\` after it to lower it a half step.) I don't care about whitespace, so feel free to space out your musical typing however you like~  If you want to include a musical rest, use \`.\` and if you'd like to hold out a note a little longer, use \`-\`.  Just tell me a number if you want to tell me what octave to play the following notes in (\`1 2 3 4 5 6 7\`), or if you'd just like to move up or down an octave just put a \`<\` to go down or a \`>\` to go up. (It'll take affect for the following notes.) You can play chords by putting notes in \`[]\` like this simple C major triad chord here: \`[c e g]\`  If you'd like to really emphasize a note or a chord, just put \`^\` right before it, and I'll know to play it a little louder than all the rest. :3 And if you want to make it even louder than that, you can add more, like this: \`^^\` or even \`^^^\`. Likewise, to deemphasize a note or chord, use \`v\` right before it, and you can double or triple those, too! If you want to set dynamics, put a \`p\` (piano) to make the following notes softer, a \`m\` (mezzo piano) to make them normal, and \`l\` (loud) to make them louder. And finally, if you just want to repeat a note you already typed, just put a \`,\` instead of going to all the trouble of typing it all again. :3 I almost forgot! If you want to make triplets, just put them inside parentheses like this: \`(e f g)\` And you can tie a note with the last one by putting a \`~\` right before it like this: \`c d ~d e\` (Or this, if you prefer: \`c d ~, e\`)
+Put stuff in between \`{\` and \`}\` and I'll do it twice for you! Or four times if you do something like this: \`{{ c g e g }}\` Or eight times, or sixteen times!
 
 _Multiple Parts:_
 You can also tell me to play multiple parts at once by simply separating them with \`:\`!  You can even tell me what instrument to play by preceding a part with the instrument name + \`:\` like this example which plays two parts, one for trumpet and one for tuba: \`\`\`${config.trigger}trumpet: 4efgc-- : tuba: 2cdgc--\`\`\`
@@ -65,6 +66,7 @@ If you don't tell me which speed to play at, I'll go at a \`normal\` speed, and 
 Don't forget to ask me to make \`${config.trigger}sheet\` music of your tunes for you!! ^^ You can add clefs to your parts by putting one of these before the part: \`treble-clef:\` \`bass-clef:\` \`tenor-clef:\ \`alto-clef\`
 And you can choose a time signature by putting something along the lines of this before it: \`time 6/8:\`
 And of course key signatures too! (\`key g minor:\` \`key e mixolydian:\` \`key a# ionian:\` etc.)
+Add a title: \`title Good Music:\` and say who it's by: \`by Me of course:\` and you'll be on your way. ^^
 
 _Happy Composing!~~_`;
 
