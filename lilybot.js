@@ -38,6 +38,7 @@
 // tuner?? jam sessions? record from voice and convert to midi/sheets?
 // lyrics????? and speech synth??????
 // multi page out support ? ? 
+// soundfont selection??
 
 // libraries
 const { spawn } = require("child_process");
