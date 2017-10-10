@@ -19,7 +19,7 @@ Command line dependencies:
 `midi2ly`
 `python2.6`
 `mogrify`
-`timidity++`
+`timidity`
 
 ## Run
 

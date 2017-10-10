@@ -1,5 +1,7 @@
 // todo:
+// make a github.io page :3
 // percussion support
+// looping structures
 // proper commands listing with descriptions and stuff
 // command args
 //   invite and github for others
