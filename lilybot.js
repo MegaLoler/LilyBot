@@ -161,8 +161,8 @@ function tuneBotExpression2LilyPondScore(expression)
 		else if(p in config.tempos)
 		{
 			const t = config.tempos[p];
-			output += `\\tempo 4 = ${t} `;
-			tempo = t;
+			tempo = `tempo 4 = ${t}`;
+			output += `\\${tempo} `;
 		}
 		else if(p in config.clefs)
 		{
