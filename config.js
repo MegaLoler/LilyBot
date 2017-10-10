@@ -236,23 +236,55 @@ config.botStrings = {
 
 // example tunes from various people
 config.examples = {
+        "Nyan Cat": {
+		example: `title Nyan Nyan: by Internet:
+fast: treble-clef: flute:
+5f#.g#.dd#.c#dc#<b.b.>c#.d.dc#<b>c#d#f#g#d#f#c#d#<b>c#<b>d#.f#.g#d#f#c#d#<b>dd#dc#<b>c#d.<b>c#d#f#c#dc#<b>c#.<b.>c#.
+5f#.g#.dd#.c#dc#<b.b.>c#.d.dc#<b>c#d#f#g#d#f#c#d#<b>c#<b>d#.f#.g#d#f#c#d#<b>dd#dc#<b>c#d.<b>c#d#f#c#dc#<b>c#.<b.b.
+b-f#g#b-f#g#b>c#d#<b>ed#ef#<b.b-f#g#bf#>ed#c#<bed#ef#   b-f#g#b-f#g#bb>c#d#<bf#g#f#b.ba#bf#g#b>ed#ef#<b-a#-
+b-f#g#b-f#g#b>c#d#<b>ed#ef#<b.b-f#g#bf#>ed#c#<bed#ef#   b-f#g#b-f#g#bb>c#d#<bf#g#f#b.ba#bf#g#b>ed#ef#<b.>c#.
+:
+bass-clef: synth2:
+{{{ 2e.3e.2f#.3f#.2d#.3d#.2g#.3g#.2c#.3c#.2f#.3f#.1b>b<b.>c#.d#. }}}`,
+	},
+        "Bad Apple": {
+		example: `fast: 
+trumpet: eighth: 4d#e#f#g#a#->d#c#<a#-d#-a#g#f#e# d#e#f#g#a#-g#f#e#d#e#f#e#d#de#  4d#e#f#g#a#->d#c#<a#-d#-a#g#f#e# d#e#f#g#a#-g#f#e#.f#.g#.a#. :
+quiet: trombone: 3a#>c#d#e#f#-a#g#f#-<a#->f#e#d#c# 3a#>c#d#e#f#-e#d#c#<a#>c#d#<a#a#g#g# f#g#a#>e#f#-a#g#f#-<a#->f#e#d#c# 3a#>c#d#e#f#-e#d#c#.d#.e#.e#. :
+double: bass-clef: tuba: 2d#-->d#.d#c#d#< d#-->d#.d#c#d#< d#-->d#.d#c#d#< d#->d#f#<g#->f#g# 1b-->b.ba#b< 1b-->b.ba#b 2c#-->c#.c#<b>c# <d-->d.dcd  2d#-->d#.d#c#d#< d#-->d#.d#c#d#< d#-->d#.d#c#d#< d#->d#f#<g#->f#g# 1b-->b.ba#b< 1b-->b.ba#b 2c#-->c#.c#<b>c# <d-->d.dcd`,
+	},
+        "Hello, How Are You": {
+		example: `flute: 5............................................>c#---
+<b..ee.<b.b.>e.e...f#ef#ef#-g#ag#...e->c#-<b..ee.<b.b.>e.e.e.f#-e.d#.e-........ :
+piano: ...............e[f#b]..e..[ef#].........[d#b]..f#..[eb]........
+5e[f#b]..e..[ef#].........[d#b]..f#..[eb]........
+5e[f#b]..e..[ef#].........[f#b]..e..[ef#]........ :
+4...............g#4g#.....a.........b.....>c#.........
+4g#.....a.........b.....>c#.........
+4g#.....a.........b.....>c#.........
+--flute: ............................................5>c#---
+<b..ee.<b.b.>e.e...f#ef#ef#-g#ag#...e->c#-<b..ee.<b.b.>e.e.e.f#-e.d#.e-........ :
+piano: ...............5e[f#b]..e..[ef#].........[d#b]..f#..[eb]........
+5e[f#b]..e..[ef#].........[d#b]..f#..[eb]........
+5e[f#b]..e..[ef#].........[f#b]..e..[ef#]........ :
+................4g#.....a.........b.....>c#.........
+4g#.....a.........b.....>c#.........
+4g#.....a.........b.....>c#.........`,
+	},
+        "Nightmare in Dreamland": {
+		example: `flute: double:
+m5g-------f---e&---d---<b&---g------->c---d---e&---f---d--...........l(gab)>^c...............................^c--.....<g-......e&--.d-..c-......c--.d-..e&-..c-..<b&--.>c-..<g-...... :
+half: piano: bass-clef:
+m[2f>b&>c]-------[2g>b&>d]-------[2a&>g>e&]-------[2b>g>f]-------
+l3c[4ce&]2g[4ce&]3c[4ce&]2g[4ce&]3c[4ce&]2g[4ce&]3c[4ce&]2g[4ce&]
+3c[4ce&]2g[4ce&]3c[4ce&]2g[4ce&]3c[4ce&]2g[4ce&]3c[4ce&]2g[4ce&]
+3f[4cf]3c[4cf]3f[4cf]2g[4cf]3c[4ce&]2g[4ce&]3c[4ce&]2g[4ce&]`,
+	},
         "Something": {
 		example: "normal: guitar: 2^c.c.3^c.2c.^c.c.3^c...1^a.a.2^a.1a.^a.a.2^a...1^f.f.2^f.1f.^f.f.2^f...1^g.g.2^g.1g.^g.g.2^g... :\n4^[c<g>]--[c<g>].[c<g>]de^[c<g>]--^[c<g>]....^[c<g>]--[c<g>].[c<g>]de^[fc<g>].[ec<g>].^[c<g>]...^[c<g>]--[c<g>].[c<g>]de^[c<g>]--^[c<g>]....^[c<g>]--[c<g>].[c<g>]de^[fc<g>].[ec<g>].^[c<g>].[d<g>].",
 	},
-        "Nyan Cat": {
-		example: "fast: 2e.3e.2f#.3f#.2d#.3d#.2g#.3g#.2c#.3c#.2f#.3f#.1b>b<b.>c#.d#. 2e.3e.2f#.3f#.2d#.3d#.2g#.3g#.2c#.3c#.2f#.3f#.1b>b<b.>c#.d#. :\n5f#.g#.dd#.c#dc#<b.b.>c#.d.dc#<b>c#d#f#g#d#f#c#d#<b>c#<b>d#.f#.g#d#f#c#d#<b>dd#dc#<b>c#d.<b>c#d#f#c#dc#<b>c#.<b.b.",
-	},
-        "Bad Apple": {
-		example: "fast: tuba: 2d#-->d#.d#c#d#< d#-->d#.d#c#d#< d#-->d#.d#c#d#< d#->d#f#<g#->f#g# 1b-->b.ba#b< 1b-->b.ba#b 2c#-->c#.c#<b>c# <d-->d.dcd  2d#-->d#.d#c#d#< d#-->d#.d#c#d#< d#-->d#.d#c#d#< d#->d#f#<g#->f#g# 1b-->b.ba#b< 1b-->b.ba#b 2c#-->c#.c#<b>c# <d-->d.dcd :\nhalf: trumpet: 4d#e#f#g#a#->d#c#<a#-d#-a#g#f#e# d#e#f#g#a#-g#f#e#d#e#f#e#d#de#  4d#e#f#g#a#->d#c#<a#-d#-a#g#f#e# d#e#f#g#a#-g#f#e#.f#.g#.a#. :\nquiet: trombone: 3a#>c#d#e#f#-a#g#f#-<a#->f#e#d#c# 3a#>c#d#e#f#-e#d#c#<a#>c#d#<a#a#g#g# f#g#a#>e#f#-a#g#f#-<a#->f#e#d#c# 3a#>c#d#e#f#-e#d#c#.d#.e#.e#.",
-	},
         "Something Else": {
 		example: "flute:[3a#>dfa]-----[cfg]---------[<a>ceg]-----[<aa#>df]-----[<ga#>df]--- :\npiano:double: 5^f-f-d-..^c---d-^c---c-<a-..^g---a-..^g-----f-....^f-------c-d.^f--g#a....... :\nsynth: half: 1^a#--a#..^a---......^a--a..^g---^g.......",
-	},
-        "Hello, How Are You": {
-		example: "5e[f#b]..e..[ef#].........[d#b]..f#..[eb]........\n5e[f#b]..e..[ef#].........[d#b]..f#..[eb]........\n5e[f#b]..e..[ef#].........[f#b]..e..[ef#]........ :\ng#4g#.....a.........b.....>c#.........\n4g#.....a.........b.....>c#.........\n4g#.....a.........b.....>c#......... :\nflute: 5e............................>c#---\n<b..ee.<b.b.>e.e...f#ef#ef#-g#ag#...e->c#-<b..ee.<b.b.>e.e.e.f#-e.d#.e-........",
-	},
-        "Nightmare in Dreamland": {
-		example: "flute:double:5g-------f---d#---d---<a#---g------->c---d---d#---f---d---.........gab>c-..............................c-......<g-......d#-..d-..c-......c-..d-..d#-..c-..<a#-..>c-..<g-...... :\nhalf:piano: [2f>a#>c]-------[2g>a#>d]-------[2g#>g>d#]-------[2b>g>f]-------\n3c[4cd#]2g[4cd#]3c[4cd#]2g[4cd#]3c[4cd#]2g[4cd#]3c[4cd#]2g[4cd#]\n3c[4cd#]2g[4cd#]3c[4cd#]2g[4cd#]3c[4cd#]2g[4cd#]3c[4cd#]2g[4cd#]\n3f[4cf]c[4cf]3f[4cf]2g[4cf]3c[4cd#]2g[4cd#]3c[4cd#]2g[4cd#]",
 	},
         "Kirby": {
 		example: "faster: 4a...>d..ef#.e.f#.g.a...f#..ad...e...<a...>d..ef#.e.f#.g.a...b..ag.f#.e.f#.g...e.f#ga.g.f#.a.f#...d..ef#...<b...>e...e..f#e.d.c#.d.c#...d..d#e.c#.<b.a#. : 2d-3d-2d-3d-2c#-3c#-2c#-3c#-1b-2b-1b-2b-1g-2g-1a-2a- 2d-3d-2d-3d-2c#-3c#-2c#-3c#-2c-3c-2c-3c-1b-2b-1b-2b-1g-2g-1g-2g-1a-2a-1a-2a-2d-3d-2d-3d-1b-2b-1b-2b-1g-2g-1g-2g-1g#-2g#-1g#-2g#-1a-2a-1a-2a-1a-2a-1a-2a-",
