@@ -90,7 +90,7 @@ function tuneBotExpression2LilyPondScore(expression)
 	// default values
 	var unitValue = 16;
 	var instrument = "acoustic piano";
-	var tempo = 90;
+	var tempo = "tempo 4 = 90;
 
 	// title stuff
 	var sheetTitle = "";
@@ -103,7 +103,7 @@ function tuneBotExpression2LilyPondScore(expression)
 		const p = part.trim();
 
 		// make a new staff if requested
-		if(newStaffPending) output += `}\n\\new Staff { \\set Staff.midiInstrument = #"${instrument}" \\tempo 4 = ${tempo} `;
+		if(newStaffPending) output += `}\n\\new Staff { \\set Staff.midiInstrument = #"${instrument}" \\${tempo} `;
 		newStaffPending = false;
 
 		if(p in config.programs)
@@ -134,6 +134,7 @@ function tuneBotExpression2LilyPondScore(expression)
 		else if(p.startsWith("tempo"))
 		{
 			output += `\\${p} `;
+			tempo = p;
 		}
 		else if(p.startsWith("time"))
 		{
