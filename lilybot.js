@@ -36,6 +36,7 @@
 // watch out for bot conversation loops!!!! and watch out for dos'ing
 // tuner?? jam sessions? record from voice and convert to midi/sheets?
 // lyrics????? and speech synth??????
+// multi page out support ? ? 
 
 // libraries
 const { spawn } = require("child_process");
