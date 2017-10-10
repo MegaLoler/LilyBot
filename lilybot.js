@@ -1,7 +1,6 @@
 // todo:
 // make a github.io page :3
 // percussion support
-// looping structures
 // proper commands listing with descriptions and stuff
 // command args
 //   invite and github for others
@@ -273,6 +272,16 @@ function tuneBotExpression2LilyPondScore(expression)
 					if(last.chord) chordBuffer = last.buffer;
 					else noteBuffer = last.buffer;
 					lengthBuffer = 1;
+				}
+				else if(c == '{')
+				{
+					flush();
+					output += "\\repeat unfold 2 { ";
+				}
+				else if(c == '}')
+				{
+					flush();
+					output += "} ";
 				}
 				else if(c == '(')
 				{
