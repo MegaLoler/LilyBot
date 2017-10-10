@@ -1,10 +1,10 @@
 // todo:
+// percussion support
 // proper commands listing with descriptions and stuff
 // command args
 //   invite and github for others
 //   join specific channels
-// for now ill just make a simple tunebot2ly converter that is compatible with old tunebot
-//   and add tune bot specific error messages to help people know whats wrong!!
+// add tune bot specific error messages to help people know whats wrong!!
 // different language options OVERHAUL!!!
 //   actually just make a tunebot2ly compiler????????
 //   and encorporate all kinds of xxx2ly things????
