@@ -354,7 +354,7 @@ function tuneBotExpression2LilyPondScore(expression)
 	// finish up
 	output += "}\n>>";
 	const lily = makeLilyPondScore(output);
-	console.log(lily);
+	if(config.testing) console.log(lily);
 	return lily;
 }
 
