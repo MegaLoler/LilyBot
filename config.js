@@ -321,7 +321,15 @@ l3c[4ce&]2g[4ce&]3c[4ce&]2g[4ce&]3c[4ce&]2g[4ce&]3c[4ce&]2g[4ce&]
 	"Jaws Theme": {
 		example: "bass:2c--------2c#........2c--------2c#........2c------2c#......2c------2c#......2c----2c#....2c----2c#....2c--2c#..2c--2c#..2c--2c#..2c--2c#..2c.2c#.2c.2c#.2c.2c#.2c.2c#.:tuba:2c--------2c#........2c--------2c#........2c------2c#......2c------2c#......2c----2c#....2c----2c#....2c--2c#..2c--2c#..2c--2c#..2c--2c#..2c.2c#.2c.2c#.2c.2c#.2c.2c#.:cello:2c--------2c#........2c--------2c#........2c------2c#......2c------2c#......2c----2c#....2c----2c#....2c--2c#..2c--2c#..2c--2c#..2c--2c#..2c.2c#.2c.2c#.2c.2c#.2c.2c#.:choir:2c--------2c#........2c--------2c#........2c------2c#......2c------2c#......2c----2c#....2c----2c#....2c--2c#..2c--2c#..2c--2c#..2c--2c#..2c.2c#.2c.2c#.2c.2c#.2c.2c#.",
 		credit: "MasterFoxify",
-	}
+	},
+	"Take On Me": {
+		example: "title Take On Me: by A-ha: key a major: piano: 4f#4f#4d3b.3b.4e.4e.4e4g#4g#4a4b4a4a4a4e.4d.4f#.4f#.4f#4e4e4f#4e4f#4f#4d3b.3b.4e.44e.4e4g#4g#4a4b4a4a4a4e.4d.4f#.4f#.4f#....4d--4d-4c#3b-........4c#4c#-4c#-3a...4f#.4f#4f#-4e-4d--4d4d4c#-3b--.....3e4c#-4c#4c#-3b3a3a-3b-4c#3b3b3a-..4d-4d-4d4d--........3f#3a3a3a3a3a3a3g#--3g#3f#--2a-------3g#-------3a-------4e-.4f#--4e-3a-------4e-------4f#-------4e-.4f#--4e-4c#-------4g#-------4a-------..4b5c#.4b4a---5e---------------------",
+		credit: "MasterFoxify",
+	},
+	"LilyBot.exe has crashed": {
+		example: "fastest:taiko: hundred-twenty-eighth: fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeecccccccccccccccccaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeecccccccccccccccccaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeecccccccccccccccccaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeecccccccccccccccccaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbb",
+		credit: "MasterFoxify",
+	},
 };
 
 // the instrument names and their midi program numbers
