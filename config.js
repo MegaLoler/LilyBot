@@ -13,7 +13,7 @@ const config = {};
 // file send name is what to name the scratch files requested over discord
 // token file is the file to read the login token from
 config.testing = process.argv[2] == "test";
-config.trigger = config.testing ? "t--" : "--";
+config.trigger = config.testing ? "t--" : "~~";
 config.botChannel = "lilybot";
 config.enableBotChannelAddressing = false;
 config.blockCodeAlias = "lily";

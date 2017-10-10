@@ -923,7 +923,7 @@ function requestPdfFile(code, args, message)
 			saveScratchMidi(attachment, message.author, message.guild, (errorCallback) => {
 				convertScratchMidiToLilyPondFile(message.author, message.guild, (errorCallback) => {
 					renderScratchSheetMusic(message.author, message.guild, (errorCallback) => {
-						givePdf(message);
+						givePdf(message, () => {});
 					}, errorCallback);
 				}, errorCallback);
 			}, (error) => {
@@ -935,7 +935,7 @@ function requestPdfFile(code, args, message)
 		{
 			saveAttachedLilyPondFile(attachment, message.author, message.guild, (errorCallback) => {
 				renderScratchSheetMusic(message.author, message.guild, (errorCallback) => {
-					givePdf(message);
+					givePdf(message, () => {});
 				}, errorCallback);
 			}, (error) => {
 				console.error(error);
@@ -948,14 +948,14 @@ function requestPdfFile(code, args, message)
 	{
 		saveLilyPondFile(code, message.author, message.guild, (errorCallback) => {
 			renderScratchSheetMusic(message.author, message.guild, (errorCallback) => {
-				givePdf(message);
+				givePdf(message, () => {});
 			}, errorCallback);
 		}, (error) => {
 			console.error(error);
 			sendBotString("onTuneError", (msg) => reply(message, msg));
 		});
 	}
-	else givePdf(message);
+	else givePdf(message, () => {});
 }
 
 // respond with sheet music to the tune!
@@ -972,7 +972,7 @@ function requestSheets(code, args, message)
 			saveScratchMidi(attachment, message.author, message.guild, (errorCallback) => {
 				convertScratchMidiToLilyPondFile(message.author, message.guild, (errorCallback) => {
 					renderScratchSheetMusic(message.author, message.guild, (errorCallback) => {
-						giveSheets(message);
+						giveSheets(message, () => {});
 					}, errorCallback);
 				}, errorCallback);
 			}, (error) => {
@@ -984,7 +984,7 @@ function requestSheets(code, args, message)
 		{
 			saveAttachedLilyPondFile(attachment, message.author, message.guild, (errorCallback) => {
 				renderScratchSheetMusic(message.author, message.guild, (errorCallback) => {
-					giveSheets(message);
+					giveSheets(message, () => {});
 				}, errorCallback);
 			}, (error) => {
 				console.error(error);
@@ -997,14 +997,14 @@ function requestSheets(code, args, message)
 	{
 		saveLilyPondFile(code, message.author, message.guild, (errorCallback) => {
 			renderScratchSheetMusic(message.author, message.guild, (errorCallback) => {
-				giveSheets(message);
+				giveSheets(message, () => {});
 			}, errorCallback);
 		}, (error) => {
 			console.error(error);
 			sendBotString("onTuneError", (msg) => reply(message, msg));
 		});
 	}
-	else giveSheets(message);
+	else giveSheets(message, () => {});
 }
 
 // respond with lilypond file
@@ -1020,7 +1020,7 @@ function requestLilyPondFile(code, args, message)
 		{
 			saveScratchMidi(attachment, message.author, message.guild, (errorCallback) => {
 				convertScratchMidiToLilyPondFile(message.author, message.guild, (errorCallback) => {
-					giveLilyPondFile(message);
+					giveLilyPondFile(message, () => {});
 				}, errorCallback);
 			}, (error) => {
 				console.error(error);
@@ -1031,7 +1031,7 @@ function requestLilyPondFile(code, args, message)
 		{
 			saveAttachedLilyPondFile(attachment, message.author, message.guild, (errorCallback) => {
 				convertToScratchMidi(message.author, message.guild, (errorCallback) => {
-					giveLilyPondFile(message);
+					giveLilyPondFile(message, () => {});
 				}, errorCallback);
 			}, (error) => {
 				console.error(error);
@@ -1043,13 +1043,13 @@ function requestLilyPondFile(code, args, message)
 	else if(code)
 	{
 		saveLilyPondFile(code, message.author, message.guild, (errorCallback) => {
-			giveLilyPondFile(message);
+			giveLilyPondFile(message, () => {});
 		}, (error) => {
 			console.error(error);
 			sendBotString("onTuneError", (msg) => reply(message, msg));
 		});
 	}
-	else giveLilyPondFile(message);
+	else giveLilyPondFile(message, () => {});
 }
 
 // respond with midi file
@@ -1064,7 +1064,7 @@ function requestMidiFile(code, args, message)
 		if(hasExtension(attachment.filename, ["mid", "midi"]))
 		{
 			saveScratchMidi(attachment, message.author, message.guild, (errorCallback) => {
-				giveMidiFile(message);
+				giveMidiFile(message, () => {});
 			}, (error) => {
 				console.error(error);
 				sendBotString("onCorruptMidiFile", (msg) => reply(message, msg));
@@ -1074,7 +1074,7 @@ function requestMidiFile(code, args, message)
 		{
 			saveAttachedLilyPondFile(attachment, message.author, message.guild, (errorCallback) => {
 				convertToScratchMidi(message.author, message.guild, (errorCallback) => {
-					giveMidiFile(message);
+					giveMidiFile(message, () => {});
 				}, errorCallback);
 			}, (error) => {
 				console.error(error);
@@ -1087,14 +1087,14 @@ function requestMidiFile(code, args, message)
 	{
 		saveLilyPondFile(code, message.author, message.guild, (errorCallback) => {
 			convertToScratchMidi(message.author, message.guild, (errorCallback) => {
-				giveMidiFile(message);
+				giveMidiFile(message, () => {});
 			}, errorCallback);
 		}, (error) => {
 			console.error(error);
 			sendBotString("onTuneError", (msg) => reply(message, msg));
 		});
 	}
-	else giveMidiFile(message);
+	else giveMidiFile(message, () => {});
 }
 
 // respond with playing the tune
