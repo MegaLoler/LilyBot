@@ -92,7 +92,13 @@ const helpString = `Hi! I'm **LilyBot**!  I will make sheet music of tunes you c
 First, meet me in a voice channel. (I'll join you automatically when you ask me to play.) Then ask me to play _Bad Apple_ like this: \`\`\`${config.trigger}defg a- >dc <a-d- agfe defg a-gf edef edc#e defg a- >dc <a-d- agfe defg a-gf e.f.g.a.\`\`\`
 While you're at it, ask me for some \`${config.trigger}sheets\` of the tune! If you leave the voice channel I'll give you sheets automatically when you give me tunes.
 See my \`${config.trigger}examples\` for some more examples of tunes I can play for you!
-If you're interested in composing your own tunes, ask me about my \`${config.trigger}tutorial\`! :D`;
+If you're interested in composing your own tunes, ask me about my \`${config.trigger}tutorial\`! :D
+
+**Send me some files!**
+Send me a _midi file_ (\`.mid\` \`.midi\`) or a _LilyPond file_ (\`.ly\`) and I'll play it for you in the voice channel or make you sheet music out of it! ^^ (Just @mention me with your file!)
+
+**How to talk to me:**
+There are a few different ways you can get my attention. The first way is to start your message with \`${config.trigger}\` so I know you are addressing me. Another way is to simply @mention me with your message to me. You can also simply send me a DM! One final way you can address me is to send me music code contained inside code blocks that start like this: \`\`\`\`lily\``;
 
 // strings the bot uses
 config.botStrings = {
