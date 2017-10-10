@@ -101,6 +101,15 @@ function tuneBotExpression2LilyPondScore(expression)
 			output += `\\set Staff.midiInstrument = #"${i}" `;
 			instrument = i;
 		}
+		else if(p.startsWith("key"))
+		{
+			const args = p.split(" ").filter((v) => {
+				return v.length;
+			});
+			const key = args[1].replace(/\#/g, "is").replace(/\&/g, "es");
+
+			output += `\\${args[0]} ${key} \\${args[2]} `;
+		}
 		else if(p.startsWith("tempo"))
 		{
 			output += `\\${p} `;
