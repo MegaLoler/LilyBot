@@ -90,7 +90,7 @@ function tuneBotExpression2LilyPondScore(expression)
 	// default values
 	var unitValue = 16;
 	var instrument = "acoustic piano";
-	var tempo = "tempo 4 = 90;
+	var tempo = "tempo 4 = 90";
 
 	// title stuff
 	var sheetTitle = "";
