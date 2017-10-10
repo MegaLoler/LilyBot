@@ -35,6 +35,7 @@
 // play/request wavs/mp3s?
 // watch out for bot conversation loops!!!! and watch out for dos'ing
 // tuner?? jam sessions? record from voice and convert to midi/sheets?
+// lyrics????? and speech synth??????
 
 // libraries
 const { spawn } = require("child_process");
@@ -54,12 +55,14 @@ const timers = {};
 
 // lilypond templates...
 // template to output score and midi both
-function makeLilyPondScore(code)
+function makeLilyPondScore(code, sheetTitle, composer)
 {
 	return `
 \\version "2.18.2"
 \\header { 
   tagline = ""
+  title = "${sheetTitle}"
+  composer = "${composer}"
 } 
 \\paper {
   page-count = 1
@@ -86,6 +89,10 @@ function tuneBotExpression2LilyPondScore(expression)
 	var instrument = "acoustic piano";
 	var tempo = 90;
 
+	// title stuff
+	var sheetTitle = "";
+	var composer = "";
+
 	// split the parts
 	const parts = expression.split(":");
 	for(var part of parts)
@@ -101,6 +108,16 @@ function tuneBotExpression2LilyPondScore(expression)
 			const i = config.instrumentNames[config.programs[p]];
 			output += `\\set Staff.midiInstrument = #"${i}" `;
 			instrument = i;
+		}
+		else if(p.startsWith("by"))
+		{
+			const words = p.split(" ");
+			composer = words.slice(1).join(" ");
+		}
+		else if(p.startsWith("title"))
+		{
+			const words = p.split(" ");
+			sheetTitle = words.slice(1).join(" ");
 		}
 		else if(p.startsWith("key"))
 		{
@@ -373,7 +390,7 @@ function tuneBotExpression2LilyPondScore(expression)
 
 	// finish up
 	output += "}\n>>";
-	const lily = makeLilyPondScore(output);
+	const lily = makeLilyPondScore(output, sheetTitle, composer);
 	if(config.testing) console.log(lily);
 	return lily;
 }
