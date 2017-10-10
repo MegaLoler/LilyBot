@@ -4,6 +4,7 @@
 //   invite and github for others
 //   join specific channels
 // for now ill just make a simple tunebot2ly converter that is compatible with old tunebot
+//   and add tune bot specific error messages to help people know whats wrong!!
 // different language options OVERHAUL!!!
 //   actually just make a tunebot2ly compiler????????
 //   and encorporate all kinds of xxx2ly things????
@@ -63,12 +64,280 @@ function makeLilyPondScore(code)
   page-count = 1
 }
 \\score {
-\\new Staff \\relative {
 ${code}
-}
 \\layout { }
-\\midi { }
+\\midi { \\tempo 4 = 90 }
 }`
+}
+
+// make a lilypond score from tune bot code!!
+function tuneBotExpression2LilyPondScore(expression)
+{
+	// might wanna add a relative mode sometime
+	var output = "<<\n";
+
+	// start a staff
+	output += "\\new Staff { ";
+	var newStaffPending = false;
+
+	// default values
+	var unitValue = 16;
+	var instrument = "acoustic piano";
+	var tempo = 90;
+
+	// split the parts
+	const parts = expression.split(":");
+	for(var part of parts)
+	{
+		const p = part.trim().toLowerCase();
+
+		// make a new staff if requested
+		if(newStaffPending) output += `}\n\\new Staff { \\set Staff.midiInstrument = #"${instrument}" \\tempo 4 = ${tempo} `;
+		newStaffPending = false;
+
+		if(p in config.programs)
+		{
+			const i = config.instrumentNames[config.programs[p]];
+			output += `\\set Staff.midiInstrument = #"${i}" `;
+			instrument = i;
+		}
+		else if(p === "loud")
+		{
+			output += `\\set Staff.midiMinimumVolume = #0.7 `;
+			output += `\\set Staff.midiMaximumVolume = #0.9 `;
+		}
+		else if(p === "quiet")
+		{
+			output += `\\set Staff.midiMinimumVolume = #0.1 `;
+			output += `\\set Staff.midiMaximumVolume = #0.3 `;
+		}
+		else if(p === "half")
+		{
+			unitValue /= 2;
+		}
+		else if(p === "double")
+		{
+			unitValue *= 2;
+		}
+		else if(p in config.tempos)
+		{
+			const t = config.tempos[p];
+			output += `\\tempo 4 = ${t} `;
+			tempo = t;
+		}
+		else if(p in config.clefs)
+		{
+			output += `\\clef ${config.clefs[p]} `;
+		}
+		else if(p in config.values)
+		{
+			unitValue = config.values[p];
+		}
+		else
+		{
+			var noteBuffer = "";
+			var lengthBuffer = 1;
+			var octaveBuffer = 4;
+			var last = {};
+			last.chord = false;
+			last.buffer = "";
+			var chordBuffer = "";
+			var inChord = false;
+			var pendingChord = false;
+			var dynamic = "";
+			var suffix = "";
+
+			// logarithmic floor
+			function floorLog(n, e=2)
+			{
+				return Math.pow(e, Math.floor(Math.log(n) / Math.log(e)));
+			}
+
+			// convert tunebot length to lilypond length
+			function convertLength(len, buffer)
+			{
+				// basic length value
+				const baseValue = floorLog(len);
+				var remainder = len % baseValue;
+				var base = baseValue;
+				var dots = 0;
+				while(remainder && remainder >= base / 2)
+				{
+					base = floorLog(remainder);
+					remainder %= base;
+					dots++;
+				}
+				// whole number 
+				var converted = unitValue / baseValue;
+				if(converted == 0.5) converted = "\\breve";
+				else if(converted == 0.25) converted = "\\longa";
+				return converted.toString() + ".".repeat(dots) + (remainder ? ("~ " + buffer) + convertLength(remainder, buffer) : "");
+			}
+
+			// convert tunebot octave to lilypond octave
+			function convertOctave(noteBuffer, octave)
+			{
+				if(noteBuffer.startsWith("r")) return "";
+				const count = octave - 3;
+				if(count > 0) return "'".repeat(count);
+				else if(count < 0) return ",".repeat(-count);
+				return "";
+			}
+
+			// add the note buffer to the lilypond output
+			function flush()
+			{
+				if(pendingChord)
+				{
+					const appendage = `${chordBuffer}${convertLength(lengthBuffer, chordBuffer)}${suffix}`;
+					last.chord = true;
+					last.buffer = chordBuffer;
+					output += appendage;
+					pendingChord = false;
+					if(dynamic) output += `\\${dynamic}`;
+					output += " ";
+					dynamic = "";
+					suffix = "";
+				}
+				else if(noteBuffer)
+				{
+					const preAppendage = `${noteBuffer}${convertOctave(noteBuffer, octaveBuffer)}`;
+					const appendage = `${preAppendage}${inChord ? "" : convertLength(lengthBuffer, preAppendage)}${suffix}`;
+					if(!noteBuffer.startsWith("r"))
+					{
+						last.chord = false;
+						last.buffer = noteBuffer;
+					}
+					noteBuffer = "";
+					if(inChord)
+					{
+						chordBuffer += appendage;
+						if(dynamic) chordBuffer += `\\${dynamic}`;
+						chordBuffer += " ";
+					}
+					else
+					{
+						output += appendage;
+						if(dynamic) output += `\\${dynamic}`;
+						output += " ";
+					}
+					dynamic = "";
+					suffix = "";
+				}
+			}
+
+			// go through each input char
+			for(var c of p.toLowerCase())
+			{
+				if("abcdefg".indexOf(c) != -1)
+				{
+					flush();
+					noteBuffer = c;
+					lengthBuffer = 1;
+				}
+				else if(c == '~')
+				{
+					suffix += "~";
+				}
+				else if(c == '#')
+				{
+					noteBuffer += "is";
+				}
+				else if(c == '&')
+				{
+					noteBuffer += "es";
+				}
+				else if(c == ',')
+				{
+					flush();
+					pendingChord = last.chord;
+					if(last.chord) chordBuffer = last.buffer;
+					else noteBuffer = last.buffer;
+					lengthBuffer = 1;
+				}
+				else if(c == '[')
+				{
+					flush();
+					chordBuffer = "<";
+					inChord = true;
+				}
+				else if(c == ']')
+				{
+					flush();
+					chordBuffer += ">";
+					inChord = false;
+					pendingChord = true;
+					lengthBuffer = 1;
+				}
+				else if(c == '-')
+				{
+					if(!inChord) lengthBuffer++;
+				}
+				else if(c == '.')
+				{
+					if(inChord) continue;
+					if(!pendingChord && noteBuffer.startsWith("r")) lengthBuffer++;
+					else
+					{
+						flush();
+						noteBuffer = "r";
+						lengthBuffer = 1;
+					}
+				}
+				else if(c == '|')
+				{
+					flush();
+					output += "| ";
+				}
+				else if(c == '^')
+				{
+					flush();
+					suffix += "->";
+				}
+				else if(c == 'p')
+				{
+					flush();
+					dynamic += "p";
+				}
+				else if(c == 'l')
+				{
+					flush();
+					dynamic += "f";
+				}
+				else if(c == 'm')
+				{
+					flush();
+					dynamic = "mp";
+				}
+				else if(c == '>')
+				{
+					flush();
+					octaveBuffer++;
+				}
+				else if(c == '<')
+				{
+					flush();
+					octaveBuffer--;
+				}
+				else if("0123456789".indexOf(c) != -1)
+				{
+					flush();
+					octaveBuffer = c;
+				}
+			}
+			// flush
+			flush();
+
+			// request new staff
+			newStaffPending = true;
+		}
+	}
+
+	// finish up
+	output += "}\n>>";
+	const lily = makeLilyPondScore(output);
+	console.log(lily);
+	return lily;
 }
 
 /* EXTERNAL COMMANDS */
@@ -130,7 +399,7 @@ function convertLilyPond(inFile, outFile, callback, errorCallback)
 
 /* BOT UTILITY FUNCTIONS */
 
-// save the lilypond code into the scratch lilypond file
+// take TUNEBOT code and convert it to LILYPOND code and then save the lilypond scratch file
 function saveLilyPondFile(code, user, guild, callback, errorCallback)
 {
 	if(code)
@@ -138,7 +407,7 @@ function saveLilyPondFile(code, user, guild, callback, errorCallback)
 		if(guild)
 		{
 			getGuildScratchFile(guild, "ly", (file) => {
-				fs.writeFile(file, makeLilyPondScore(code), "utf8", (error) => {
+				fs.writeFile(file, tuneBotExpression2LilyPondScore(code), "utf8", (error) => {
 					if(error) errorCallback(error);
 					else callback(errorCallback);
 				});
@@ -147,7 +416,7 @@ function saveLilyPondFile(code, user, guild, callback, errorCallback)
 		else
 		{
 			getUserScratchFile(user, "ly", (file) => {
-				fs.writeFile(file, makeLilyPondScore(code), "utf8", (error) => {
+				fs.writeFile(file, tuneBotExpression2LilyPondScore(code), "utf8", (error) => {
 					if(error) errorCallback(error);
 					else callback(errorCallback);
 				});
