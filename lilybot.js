@@ -1172,6 +1172,21 @@ function requestExamples(arg, args, message)
 	sendBotString("onExampleRequest", (msg) => reply(message, msg), (msg) => message.channel.send(msg), `\n\n${ls.join("\n\n")}`, "\n\n");
 }
 
+// see what known instruments there are
+function requestInstruments(arg, args, message)
+{
+        // get the list of instrument strings
+        const ls = Array(128).fill().map((v, i) => {
+                const aliases = Object.keys(config.programs).filter((key) => {
+                        return config.programs[key] == i;
+                }).map((alias) => {
+                        return `\`${alias}\``;
+                }).join(" ");
+                return `• \`p${parseInt(i) + 1}\`\t${aliases}`;
+        });
+        sendBotString("onInstrumentRequest", (msg) => reply(message, msg), (msg) => message.channel.send(msg), `\n${ls.join("\n")}`);
+}
+
 // respond with help message
 function requestHelp(arg, args, message)
 {
@@ -1222,6 +1237,7 @@ registerCommand(config.commands.repeatTune, repeatTune);
 registerCommand(config.commands.stopPlayingTune, stopPlayingTune);
 registerCommand(config.commands.requestHelp, requestHelp);
 registerCommand(config.commands.requestTutorial, requestTutorial);
+registerCommand(config.commands.requestInstruments, requestInstruments);
 registerCommand(config.commands.requestExamples, requestExamples);
 registerCommand(config.commands.requestInviteLink, requestInviteLink);
 registerCommand(config.commands.requestGithubLink, requestGithubLink);

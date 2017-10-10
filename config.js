@@ -39,6 +39,7 @@ config.commands.repeatTune = ["again", "repeat", "encore"];
 config.commands.stopPlayingTune = ["stop", "quit", "quiet", "end"];
 config.commands.requestHelp = ["help", "commands", "about", "info"];
 config.commands.requestTutorial = ["tutorial", "composing", "how", "howto"];
+config.commands.requestInstruments = ["instruments", "sounds", "programs", "patches", "instrument"];
 config.commands.requestExamples = ["examples", "example", "tunes", "songs", "list", "songlist", "tunelist", "sample", "samples", "juke", "jukebox"];
 config.commands.requestInviteLink = ["invite", "link", "server", "discord"];
 config.commands.requestGithubLink = ["github", "git", "code", "dev", "developer", "creator", "about", "writer", "author", "owner"];
