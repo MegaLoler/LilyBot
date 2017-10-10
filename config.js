@@ -63,7 +63,7 @@ If you don't tell me which speed to play at, I'll go at a \`normal\` speed, and 
 
 Don't forget to ask me to make \`${config.trigger}sheet\` music of your tunes for you!! ^^ You can add clefs to your parts by putting one of these before the part: \`treble-clef:\` \`bass-clef:\` \`tenor-clef:\ \`alto-clef\`
 And you can choose a time signature by putting something along the lines of this before it: \`time 6/8:\`
-And of course key signatures too! (\'key g minor:\' \`key e mixolydian:\` \`key a# ionian:\` etc.)
+And of course key signatures too! (\`key g minor:\` \`key e mixolydian:\` \`key a# ionian:\` etc.)
 
 _Happy Composing!~~_`;
 
