@@ -101,6 +101,14 @@ function tuneBotExpression2LilyPondScore(expression)
 			output += `\\set Staff.midiInstrument = #"${i}" `;
 			instrument = i;
 		}
+		else if(p.startsWith("tempo"))
+		{
+			output += `\\${p} `;
+		}
+		else if(p.startsWith("time"))
+		{
+			output += `\\${p} `;
+		}
 		else if(p === "loud")
 		{
 			output += `\\set Staff.midiMinimumVolume = #0.7 `;
@@ -254,6 +262,16 @@ function tuneBotExpression2LilyPondScore(expression)
 					if(last.chord) chordBuffer = last.buffer;
 					else noteBuffer = last.buffer;
 					lengthBuffer = 1;
+				}
+				else if(c == '(')
+				{
+					flush();
+					output += "\\tuplet 3/2 { ";
+				}
+				else if(c == ')')
+				{
+					flush();
+					output += "} ";
 				}
 				else if(c == '[')
 				{
