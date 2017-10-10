@@ -63,7 +63,7 @@ You can change how long your typed-in notes are by putting one of these before a
 And as a little bonus, if you want to play one part quieter than the rest, you can just put \`quiet:\` before the part! (That's useful for adding in background harmonies and suchlike that you don't want to overpower the rest for example.) (There's also \`loud\` as well!)
 If you don't tell me which speed to play at, I'll go at a \`normal\` speed, and if you don't tell me which instrument to play, I'll play the \`piano\` for you. :3
 
-Don't forget to ask me to make \`${config.trigger}sheet\` music of your tunes for you!! ^^ You can add clefs to your parts by putting one of these before the part: \`treble-clef:\` \`bass-clef:\` \`tenor-clef:\ \`alto-clef\`
+Don't forget to ask me to make \`${config.trigger}sheet\` music of your tunes for you!! ^^ You can add clefs to your parts by putting one of these before the part: \`treble-clef:\` \`bass-clef:\` \`tenor-clef:\` \`alto-clef\`
 And you can choose a time signature by putting something along the lines of this before it: \`time 6/8:\`
 And of course key signatures too! (\`key g minor:\` \`key e mixolydian:\` \`key a# ionian:\` etc.)
 Add a title: \`title Good Music:\` and say who it's by: \`by Me of course:\` and you'll be on your way. ^^
