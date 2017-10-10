@@ -1,6 +1,7 @@
 // todo:
 // make a github.io page :3
 // percussion support
+// update examples... make them sheet worthy
 // proper commands listing with descriptions and stuff
 // command args
 //   invite and github for others
