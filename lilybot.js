@@ -905,11 +905,8 @@ function leaveVoiceChannel(arg, args, message)
 function autoCommand(code, args, message)
 {
 	const attachment = message.attachments.first();
-	const midiFile = attachment && hasExtension(attachment.filename, ["mid", "midi"]);
-	const lilyFile = attachment && hasExtension(attachment.filename, ["ly"]);
-	if(midiFile || (message.guild && message.member.voiceChannel)) playTune(code, args, message);
-	else if(!attachment || lilyFile) requestSheets(code, args, message);
-	else sendBotString("onNeedMidiOrLilyPondFile", (msg) => reply(message, msg));
+	if(message.guild && message.member.voiceChannel) playTune(code, args, message);
+	else requestSheets(code, args, message);
 }
 
 // respond with the pdf of the tune!
@@ -1117,6 +1114,10 @@ function playTune(code, args, message)
 				saveScratchMidi(attachment, message.author, message.guild, (errorCallback) => {
 					renderScratchMidi(message.author, message.guild, (errorCallback) => {
 						doPlay(message);
+					}, errorCallback);
+					// then convert it to sheets incase someone wants it
+					convertScratchMidiToLilyPondFile(message.author, message.guild, (errorCallback) => {
+						renderScratchSheetMusic(message.author, message.guild, (errorCallback) => {}, errorCallback);
 					}, errorCallback);
 				}, (error) => {
 					console.error(error);
