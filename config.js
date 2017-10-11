@@ -330,6 +330,10 @@ l3c[4ce&]2g[4ce&]3c[4ce&]2g[4ce&]3c[4ce&]2g[4ce&]3c[4ce&]2g[4ce&]
 		example: "fastest:taiko: hundred-twenty-eighth: fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeecccccccccccccccccaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeecccccccccccccccccaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeecccccccccccccccccaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeecccccccccccccccccaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbb",
 		credit: "MasterFoxify",
 	},
+	"LilyBot's Theme": {
+		example: "piano:p{4ceg-5c---4ceg-5c---3b4d#f#-b---3b4d#f#-b---4ceg-5c---3b4d#f#-b---3a4c#e-a---3g3b4d-g---}1g---------------:piano:l{6c-----6e-6c---5g---5b-----5b-5b---5f#---6c-----6e-5b---5b---5a-----5a-5g---5d---}",
+		credit: "MasterFoxify",
+	},
 };
 
 // the instrument names and their midi program numbers

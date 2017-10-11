@@ -101,6 +101,7 @@ function tuneBotExpression2LilyPondScore(expression)
 	for(var part of parts)
 	{
 		const p = part.trim();
+		if(!p) continue;
 
 		// make a new staff if requested
 		if(newStaffPending) output += `}\n\\new Staff { \\set Staff.midiInstrument = #"${instrument}" \\${tempo} `;
