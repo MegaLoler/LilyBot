@@ -4,6 +4,7 @@ const config = {};
 // set testing to true if this is being used on a testing bot (more debug output)
 // pass command line argument "test" to start in testing mode
 // trigger is what is to precede messages to the bot
+// if singleTrigger is false, the message @ the bot is allowed to contain the trigger in the body of message, (useful for ignoring strikeout messaged if the trigger is ~~)
 // auto leave voice channels after specified seconds
 // bot channel is a channel where the bot will respond to all messages without needing triggers
 // scratch directory is the directory where scratch files generated will be kept
@@ -14,6 +15,7 @@ const config = {};
 // token file is the file to read the login token from
 config.testing = process.argv[2] == "test";
 config.trigger = config.testing ? "t--" : "~~";
+config.singleTrigger = true;
 config.botChannel = "lilybot";
 config.enableBotChannelAddressing = false;
 config.blockCodeAlias = "lily";

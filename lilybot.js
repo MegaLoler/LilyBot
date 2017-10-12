@@ -39,6 +39,8 @@
 // lyrics????? and speech synth??????
 // multi page out support ? ? 
 // soundfont selection??
+// watchout for cross outs ~~ hh ~~
+// discord bot guidelines
 
 // libraries
 const { spawn } = require("child_process");
@@ -405,7 +407,6 @@ function tuneBotExpression2LilyPondScore(expression)
 // run an external command
 function runCommand(cmd, args, callback, errorCallback, stdoutCallback)
 {
-	const { spawn } = require("child_process");
         const child = spawn(cmd, args);
 	child.failed = false;
         
@@ -1325,7 +1326,9 @@ client.on("message", message => {
         const content = message.content.trim();
 	const attachment = message.attachments.first();
         const dm = !message.guild;
-        const triggered = content.startsWith(config.trigger);
+	// is it safe to use arbitrary string as regex ? ?
+	const triggerCount = (content.match(new RegExp(config.trigger, "g")) || []).length;
+        const triggered = content.startsWith(config.trigger) && (config.singleTrigger || triggerCount == 1);
 	const mentioned = message.mentions.users.has(client.user.id);
 	const inBotChannel = config.enableBotChannelAddressing && message.channel.name === config.botChannel;
 	const blockCodeHead = "```";
