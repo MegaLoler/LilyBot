@@ -13,6 +13,7 @@
 //   tunebots language
 //   different lilypond templates
 //   clean up all that duplicate code in the requesting different things back.. with attachments esp.
+//   make the sheet out better while ur at it
 //   make files only be converted as they are needed..........
 //     have a web of conversion paths based on the compilers available...
 //   redo the CONVERSION system alltogethr.......
@@ -1406,8 +1407,11 @@ client.on("message", message => {
 		}
 
 		// log received message directed at the bot
-		if(dm) console.log(`${message.author.tag}> ${msg}`);
-		else console.log(`${message.guild.name}> #${message.channel.name}> ${message.author.tag}> ${msg}`);
+		const loggedMsg = msg.split("\n").map((line, i) => {
+			return i ? `\t${line}` : line;
+		}).join("\n");
+		if(dm) console.log(`${message.author.tag}> ${loggedMsg}`);
+		else console.log(`${message.guild.name}> #${message.channel.name}> ${message.author.tag}> ${loggedMsg}`);
 
 		// go handle the message to the bot
 		processBotMessage(msg, message);
