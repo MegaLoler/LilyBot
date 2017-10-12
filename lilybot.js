@@ -1239,13 +1239,13 @@ function requestTutorial(arg, args, message)
 // respond with discord server invite link in private messages
 function requestInviteLink(arg, args, message)
 {
-	sendBotString("onInviteLinkRequest", (msg) => reply(message, msg));
+	sendBotString("onInviteLinkRequest", (msg) => message.author.send(msg));
 }
 
 // respond with github link in private messages
 function requestGithubLink(arg, args, message)
 {
-	sendBotString("onGithubLinkRequest", (msg) => reply(message, msg));
+	sendBotString("onGithubLinkRequest", (msg) => message.author.send(msg));
 }
 
 // respond with info message
