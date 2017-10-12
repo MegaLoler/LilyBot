@@ -1227,7 +1227,7 @@ function requestInstruments(arg, args, message)
 // respond with help message
 function requestHelp(arg, args, message)
 {
-	sendBotString("onHelpRequest", (msg) => message.author.send(msg), (msg) => message.author.send(msg));
+	sendBotString("onHelpRequest", (msg) => reply(message, msg), (msg) => message.channel.send(msg));
 }
 
 // respond with tutorial message
