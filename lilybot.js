@@ -1335,7 +1335,7 @@ client.on("message", message => {
         const dm = !message.guild;
 	// is it safe to use arbitrary string as regex ? ?
 	const triggerCount = (content.match(new RegExp(config.trigger, "g")) || []).length;
-        const triggered = content.startsWith(config.trigger) && (config.singleTrigger || triggerCount == 1);
+        const triggered = content.startsWith(config.trigger) && (!config.singleTrigger || triggerCount == 1);
 	const mentioned = message.mentions.users.has(client.user.id);
 	const inBotChannel = config.enableBotChannelAddressing && message.channel.name === config.botChannel;
 	const blockCodeHead = "```";
