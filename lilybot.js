@@ -733,7 +733,7 @@ function safeSend(msg, callback, callbackTail, chunkDelimiter="\n", charLimit=18
 		first = first.split(chunkDelimiter).slice(0, -1).join(chunkDelimiter);
 	}
 	callback(first);
-	safeSend(rest, callbackTail, callbackTail, chunkDelimiter, charLimit, doneCallback);
+	safeSend(rest, callbackTail || callback, callbackTail || callback, chunkDelimiter, charLimit, doneCallback);
 }
 
 // send a bot string from config file
@@ -1206,7 +1206,7 @@ function requestExamples(arg, args, message)
 		const example = config.examples[key];
 		return `**${key}**:${ example.credit ? ` _(sequenced by ${example.credit})_` : " " }\`\`\`${config.trigger}${example.example}\`\`\``;
 	});
-	sendBotString("onExampleRequest", (msg) => reply(message, msg), (msg) => message.channel.send(msg), `\n\n${ls.join("\n\n")}`, "\n\n");
+	sendBotString("onExampleRequest", (msg) => message.author.send(msg), (msg) => message.author.send(msg), `\n\n${ls.join("\n\n")}`, "\n\n");
 }
 
 // see what known instruments there are
@@ -1221,19 +1221,19 @@ function requestInstruments(arg, args, message)
                 }).join(" ");
                 return `• \`p${parseInt(i) + 1}\`\t${aliases}`;
         });
-        sendBotString("onInstrumentRequest", (msg) => reply(message, msg), (msg) => message.channel.send(msg), `\n${ls.join("\n")}`);
+        sendBotString("onInstrumentRequest", (msg) => message.author.send(msg), (msg) => message.author.send(msg), `\n${ls.join("\n")}`);
 }
 
 // respond with help message
 function requestHelp(arg, args, message)
 {
-	sendBotString("onHelpRequest", (msg) => reply(message, msg), (msg) => message.channel.send(msg));
+	sendBotString("onHelpRequest", (msg) => message.author.send(msg), (msg) => message.author.send(msg));
 }
 
 // respond with tutorial message
 function requestTutorial(arg, args, message)
 {
-	sendBotString("onTutorialRequest", (msg) => reply(message, msg), (msg) => message.channel.send(msg));
+	sendBotString("onTutorialRequest", (msg) => message.author.send(msg), (msg) => message.author.send(msg));
 }
 
 // respond with discord server invite link in private messages
