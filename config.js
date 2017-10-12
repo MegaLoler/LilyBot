@@ -5,6 +5,7 @@ const config = {};
 // pass command line argument "test" to start in testing mode
 // trigger is what is to precede messages to the bot
 // if singleTrigger is false, the message @ the bot is allowed to contain the trigger in the body of message, (useful for ignoring strikeout messaged if the trigger is ~~)
+// alsways mention the user being replied to or not
 // auto leave voice channels after specified seconds
 // bot channel is a channel where the bot will respond to all messages without needing triggers
 // scratch directory is the directory where scratch files generated will be kept
@@ -16,6 +17,7 @@ const config = {};
 config.testing = process.argv[2] == "test";
 config.trigger = config.testing ? "t--" : "~~";
 config.singleTrigger = true;
+config.replyMention = false;
 config.botChannel = "lilybot";
 config.enableBotChannelAddressing = false;
 config.blockCodeAlias = "lily";
@@ -24,7 +26,9 @@ config.autoJoin = true;
 config.autoStop = true;
 config.scratchDirectory = "scratch";
 config.fileSendName = "lilybot";
-config.tokenFile = "token.txt"
+config.tokenFile = "token.txt";
+config.author = "Mego#8517";
+config.framework = `discord.js v${require("discord.js").version}`;
 
 // bot command aliases
 // these are what the users type in to interact with the bot
@@ -44,7 +48,8 @@ config.commands.requestTutorial = ["tutorial", "composing", "how", "howto"];
 config.commands.requestInstruments = ["instruments", "sounds", "programs", "patches", "instrument"];
 config.commands.requestExamples = ["examples", "example", "tunes", "songs", "list", "songlist", "tunelist", "sample", "samples", "juke", "jukebox"];
 config.commands.requestInviteLink = ["invite", "link", "server", "discord"];
-config.commands.requestGithubLink = ["github", "git", "code", "dev", "developer", "creator", "about", "writer", "author", "owner"];
+config.commands.requestGithubLink = ["github", "git", "code", "dev", "developer", "creator", "writer", "author", "owner"];
+config.commands.requestInfo = ["info", "about", "information"];
 
 // links
 const inviteLink = "https://discordapp.com/oauth2/authorize?client_id=366712156898590720&scope=bot&permissions=0";
@@ -89,6 +94,7 @@ const helpString = `Hi! I'm **LilyBot**!  I will make sheet music of tunes you c
 • \`${config.trigger}examples\` — I'll show you some examples of some tunes I can play for you. o:
 • \`${config.trigger}invite\` — If you like me a lot, you can invite me to your own Discord server!
 • \`${config.trigger}github\` — Visit my Github repository!
+• \`${config.trigger}info\` — Get some technical information about me~
 
 **How to make tunes!** _(Quick Start)_
 First, meet me in a voice channel. (I'll join you automatically when you ask me to play.) Then ask me to play _Bad Apple_ like this: \`\`\`${config.trigger}defg a- >dc <a-d- agfe defg a-gf edef edc#e defg a- >dc <a-d- agfe defg a-gf e.f.g.a.\`\`\`
@@ -101,6 +107,17 @@ Send me a _midi file_ (\`.mid\` \`.midi\`) or a _LilyPond file_ (\`.ly\`) and I'
 
 **How to talk to me:**
 There are a few different ways you can get my attention. The first way is to start your message with \`${config.trigger}\` so I know you are addressing me. Another way is to simply @mention me with your message to me. You can also simply send me a DM! One final way you can address me is to send me music code contained inside code blocks that start like this: \`\`\`\`lily\``;
+
+// info message
+const infoString = `**LilyBot**
+Made with :heart: by **${config.author}** with **${config.framework}**
+
+Ask me to visit my \`${config.trigger}github\` repository!
+Ask me if you'd like to \`${config.trigger}invite\` me to your Discord server!
+
+Ask me for \`${config.trigger}help\` to get started!
+Ask to see my \`${config.trigger}tutorial\` to learn how to compose tunes!
+And ask me for some \`${config.trigger}examples\` to get some ideas!`;
 
 // strings the bot uses
 config.botStrings = {
@@ -232,6 +249,11 @@ config.botStrings = {
 	// when you ask for the github link for the bot
 	"onGithubLinkRequest": {
 		string: `Here's my code on Github!\n${githubLink}`,
+		enabled: true,
+	},
+	// when you ask for info on the bot
+	"onInfoRequest": {
+		string: infoString,
 		enabled: true,
 	},
 };

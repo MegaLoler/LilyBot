@@ -34,13 +34,11 @@
 // give mogrify out a small border ?? ?
 // cache???
 // play/request wavs/mp3s?
-// watch out for bot conversation loops!!!! and watch out for dos'ing
+// watch out for dos'ing somehow?
 // tuner?? jam sessions? record from voice and convert to midi/sheets?
 // lyrics????? and speech synth??????
 // multi page out support ? ? 
 // soundfont selection??
-// watchout for cross outs ~~ hh ~~
-// discord bot guidelines
 
 // libraries
 const { spawn } = require("child_process");
@@ -734,10 +732,10 @@ function sendBotString(string, headSendFunction, tailSendFunction, arg="", chunk
 
 // reply to a message with msg
 // mentions the user unless its private
-function reply(message, msg)
+function reply(message, msg, options)
 {
-	if(message.guild) message.reply(msg);
-	else message.channel.send(msg);
+	if(config.replyMention && message.guild) return message.reply(msg, options);
+	else return message.channel.send(msg, options);
 }
 
 /* BOT SUBCOMMANDS */
@@ -756,7 +754,7 @@ function doSend(file, message, callback)
 			const movedFile = file.replace(/(.*)\/.*(\..*$)/, "$1/" + config.fileSendName + "$2");
 			fs.rename(file, movedFile, () => {
 				sendBotString("onSendFile", (msg) => {
-					message.reply(msg, {
+					reply(message, msg, {
 						files: [movedFile]
 					}).then(() => {
 						fs.rename(movedFile, file, callback);
@@ -1235,6 +1233,12 @@ function requestGithubLink(arg, args, message)
 	sendBotString("onGithubLinkRequest", (msg) => message.author.send(msg));
 }
 
+// respond with info message
+function requestInfo(arg, args, message)
+{
+	sendBotString("onInfoRequest", (msg) => reply(message, msg), (msg) => message.channel.send(msg));
+}
+
 // map of commands
 const commands = {};
 
@@ -1265,6 +1269,7 @@ registerCommand(config.commands.requestInstruments, requestInstruments);
 registerCommand(config.commands.requestExamples, requestExamples);
 registerCommand(config.commands.requestInviteLink, requestInviteLink);
 registerCommand(config.commands.requestGithubLink, requestGithubLink);
+registerCommand(config.commands.requestInfo, requestInfo);
 
 /* MAIN BOT INTERFACE */
 
@@ -1320,6 +1325,8 @@ client.on("ready", () => {
 client.on("message", message => {
 	// ignore messages from self
 	if(client.user.id === message.author.id) return;
+	// ignore messages from bots
+	if(message.author.bot) return;
 
 	// figure out if a message is directed at the bot or not
 	// and extract the intended message to the bot
