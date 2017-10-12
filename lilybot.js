@@ -40,6 +40,7 @@
 // lyrics????? and speech synth??????
 // multi page out support ? ? 
 // soundfont selection??
+// pretty things up with embeds??
 
 // libraries
 const { spawn } = require("child_process");

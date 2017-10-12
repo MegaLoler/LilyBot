@@ -283,13 +283,13 @@ config.botStrings = {
 config.examples = {
         "Nyan Cat": {
 		example: `title Nyan Nyan: by Internet:
-fast: treble-clef: flute:
+fast: treble-clef: key b major: flute:
 5f#.g#.dd#.c#dc#<b.b.>c#.d.dc#<b>c#d#f#g#d#f#c#d#<b>c#<b>d#.f#.g#d#f#c#d#<b>dd#dc#<b>c#d.<b>c#d#f#c#dc#<b>c#.<b.>c#.
 5f#.g#.dd#.c#dc#<b.b.>c#.d.dc#<b>c#d#f#g#d#f#c#d#<b>c#<b>d#.f#.g#d#f#c#d#<b>dd#dc#<b>c#d.<b>c#d#f#c#dc#<b>c#.<b.b.
 b-f#g#b-f#g#b>c#d#<b>ed#ef#<b.b-f#g#bf#>ed#c#<bed#ef#   b-f#g#b-f#g#bb>c#d#<bf#g#f#b.ba#bf#g#b>ed#ef#<b-a#-
 b-f#g#b-f#g#b>c#d#<b>ed#ef#<b.b-f#g#bf#>ed#c#<bed#ef#   b-f#g#b-f#g#bb>c#d#<bf#g#f#b.ba#bf#g#b>ed#ef#<b.>c#.
 :
-bass-clef: synth2:
+bass-clef: key b major: synth2:
 {{{ 2e.3e.2f#.3f#.2d#.3d#.2g#.3g#.2c#.3c#.2f#.3f#.1b>b<b.>c#.d#. }}}`,
 	},
         "Bad Apple": {
