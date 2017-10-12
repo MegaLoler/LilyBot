@@ -1,3 +1,6 @@
+const fs = require("fs");
+const discord = require("discord.js");
+
 // store the configuration in this object
 const config = {};
 
@@ -14,6 +17,7 @@ const config = {};
 // code block alias is what to put after ``` to give block code to the bot
 // file send name is what to name the scratch files requested over discord
 // token file is the file to read the login token from
+// discord bots token file is file to read the discordbots.org api token from
 config.testing = process.argv[2] == "test";
 config.trigger = config.testing ? "t--" : "~~";
 config.singleTrigger = true;
@@ -27,8 +31,25 @@ config.autoStop = true;
 config.scratchDirectory = "scratch";
 config.fileSendName = "lilybot";
 config.tokenFile = "token.txt";
+config.discordBotsTokenFile = "discordBotsToken.txt";
 config.author = "Mego#8517";
-config.framework = `discord.js v${require("discord.js").version}`;
+config.framework = `discord.js ${discord.version}`;
+
+// load the login token from the file
+// probably make this better, use fs.access instead
+if(fs.existsSync(config.tokenFile)) config.token = fs.readFileSync(config.tokenFile, "ascii").trim();
+else
+{
+	console.error(`Please create the file "${config.tokenFile}" and put your Discord token inside.`);
+	process.exit(1);
+}
+// now discord bots token
+if(fs.existsSync(config.discordBotsTokenFile)) config.discordBotsToken = fs.readFileSync(config.discordBotsTokenFile, "ascii").trim();
+else
+{
+	console.error(`Please create the file "${config.discordBotsTokenFile}" and put your Discord token inside.`);
+	process.exit(1);
+}
 
 // bot command aliases
 // these are what the users type in to interact with the bot

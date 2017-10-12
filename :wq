@@ -461,14 +461,13 @@ function convertLilyPond(inFile, outFile, callback, errorCallback)
 /* BOT UTILITY FUNCTIONS */
 
 // post server count and stuff to discordbots.org
-function postStats()
+function updateDiscordBotsStats()
 {
-	// ignore for test bot
-	if(!config.testing) snekfetch.post(`https://discordbots.org/api/bots/${client.user.id}/stats`)
+	snekfetch.post(`https://discordbots.org/api/bots/${client.user.id}/stats`)
 		.set("Authorization", config.discordBotsToken)
 		.send({ server_count: client.guilds.size })
 		.then(() => console.log("Updated discordbots.org stats."))
-		.catch(err => console.error(`Error updating stats: ${err.body}`));
+		.catch(err => console.error(`Whoops something went wrong: ${err.body}`));
 }
 
 // take TUNEBOT code and convert it to LILYPOND code and then save the lilypond scratch file
@@ -1330,33 +1329,8 @@ const client = new discord.Client();
 // once its all connected and good to go
 client.on("ready", () => {
 	console.log(`Logged in as ${client.user.tag}!`);
-	console.log(`Currently a part of ${client.guilds.size} guilds:\n${client.guilds.map(guild => {
-		return `-> ${guild.name}`;
-	}).join("\n")}`);
-
 	// set the discord presence to show how to get help
 	client.user.setGame(`${config.trigger}help`);
-
-	// update discordbots.org stats
-	postStats();
-});
-
-// when bot is added to a guild
-client.on("guildCreate", guild => {
-	console.log(`Added to guild ${guild.name} <${guild.id}>!`);	
-	console.log(`Now a part of ${client.guilds.size} guilds!`);
-
-	// update discordbots.org stats
-	postStats();
-});
-
-// when bot is removed from a guild
-client.on("guildDelete", guild => {
-	console.log(`Removed from guild ${guild.name} <${guild.id}>!`);	
-	console.log(`Now a part of ${client.guilds.size} guilds!`);
-
-	// update discordbots.org stats
-	postStats();
 });
 
 // on message recieve
