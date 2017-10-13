@@ -1248,6 +1248,12 @@ function requestGithubLink(arg, args, message)
 	sendBotString("onGithubLinkRequest", (msg) => message.author.send(msg));
 }
 
+// respond with support invite
+function requestSupport(arg, args, message)
+{
+	sendBotString("onSupportRequest", (msg) => message.author.send(msg));
+}
+
 // respond with info message
 function requestInfo(arg, args, message)
 {
@@ -1258,7 +1264,7 @@ function requestInfo(arg, args, message)
 function requestCommandListing(arg, args, message)
 {
         // get the list of command strings
-        const ls = Object.keys(config.commands).map((key) => {
+        const ls = Object.keys(config.commands).sort().map((key) => {
 		const aliases = config.commands[key].aliases.map((v, i) =>
 			(i ? `\`${config.trigger}${v}\`` : `**\`${config.trigger}${v}\`**`));
 		const description = config.commands[key].description;
@@ -1299,6 +1305,7 @@ registerCommand(config.commands.requestExamples.aliases, requestExamples);
 registerCommand(config.commands.requestInviteLink.aliases, requestInviteLink);
 registerCommand(config.commands.requestGithubLink.aliases, requestGithubLink);
 registerCommand(config.commands.requestInfo.aliases, requestInfo);
+registerCommand(config.commands.requestSupport.aliases, requestSupport);
 registerCommand(config.commands.requestCommandListing.aliases, requestCommandListing);
 
 /* MAIN BOT INTERFACE */

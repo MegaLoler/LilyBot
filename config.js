@@ -18,6 +18,7 @@ const config = {};
 // file send name is what to name the scratch files requested over discord
 // token file is the file to read the login token from
 // discord bots token file is file to read the discordbots.org api token from
+// support link is invite to support server support channel
 config.testing = process.argv[2] == "test";
 config.trigger = config.testing ? "t--" : "~~";
 config.singleTrigger = true;
@@ -34,6 +35,11 @@ config.tokenFile = "token.txt";
 config.discordBotsTokenFile = "discordBotsToken.txt";
 config.author = "Mego#8517";
 config.framework = `discord.js ${discord.version}`;
+
+// links
+const inviteLink = "https://discordapp.com/oauth2/authorize?client_id=366712156898590720&scope=bot&permissions=0";
+const githubLink = "https://github.com/MegaLoler/LilyBot";
+const supportLink = "https://discord.gg/uufzzPg";
 
 // load the login token from the file
 // probably make this better, use fs.access instead
@@ -122,14 +128,14 @@ config.commands.requestInfo = {
 	aliases: ["info", "about", "information"],
 	description: "See who made me, and what I was made with, and see how to get some useful links!",
 };
+config.commands.requestSupport = {
+	aliases: ["support", "supportserver", "question", "comment", "concern", "report"],
+	description: "I'll invite you to my support server and you can ask for help or leave comments!",
+};
 config.commands.requestCommandListing = {
 	aliases: ["commands", "command", "commandlist", "commandlisting"],
 	description: "Get a complete listing of all the commands I recognize and a description of what they do~",
 };
-
-// links
-const inviteLink = "https://discordapp.com/oauth2/authorize?client_id=366712156898590720&scope=bot&permissions=0";
-const githubLink = "https://github.com/MegaLoler/LilyBot";
 
 // tutorial message
 const tutorialString = `**How to compose your own tunes!**
@@ -172,6 +178,7 @@ const helpString = `Hi! I'm **LilyBot**!  I will make sheet music of tunes you c
 • \`${config.trigger}github\` — Visit my Github repository!
 • \`${config.trigger}info\` — Get some technical information about me~
 • \`${config.trigger}commands\` — Have a full listing of all the commands I recognize!
+• \`${config.trigger}support\` — If you have questions, comments, suggestions, or concerns, I'll invite you to my support channel so we can talk about it!
 
 **How to make tunes!** _(Quick Start)_
 First, meet me in a voice channel. (I'll join you automatically when you ask me to play.) Then ask me to play _Bad Apple_ like this: \`\`\`${config.trigger}defg a- >dc <a-d- agfe defg a-gf edef edc#e defg a- >dc <a-d- agfe defg a-gf e.f.g.a.\`\`\`
@@ -194,7 +201,9 @@ Ask me if you'd like to \`${config.trigger}invite\` me to your Discord server!
 
 Ask me for \`${config.trigger}help\` to get started!
 Ask to see my \`${config.trigger}tutorial\` to learn how to compose tunes!
-And ask me for some \`${config.trigger}examples\` to get some ideas!`;
+And ask me for some \`${config.trigger}examples\` to get some ideas!
+
+Visit my \`${config.trigger}support\` server if you have any questions, comments, suggestions, concerns, or just need general help with me!`;
 
 // strings the bot uses
 config.botStrings = {
@@ -328,6 +337,11 @@ config.botStrings = {
 		string: `Here's my code on Github!\n${githubLink}`,
 		enabled: true,
 	},
+	// when you ask for support
+	"onSupportRequest": {
+		string: `For questions and concerns and comments and suggestions and asking for help, here's a link to my support server! :D\n${supportLink}`,
+		enabled: true,
+	},
 	// when you ask for info on the bot
 	"onInfoRequest": {
 		string: infoString,
@@ -335,7 +349,7 @@ config.botStrings = {
 	},
 	// when you ask for listing of commands
 	"onCommandListingRequest": {
-		string: "Here's all the commands you can use with me:",
+		string: "Here's all the commands you can use with me and all the aliases I will respond to:",
 		enabled: true,
 	},
 };
