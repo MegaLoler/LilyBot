@@ -1254,6 +1254,20 @@ function requestInfo(arg, args, message)
 	sendBotString("onInfoRequest", (msg) => reply(message, msg), (msg) => message.channel.send(msg));
 }
 
+// respond with list of commands
+function requestCommandListing(arg, args, message)
+{
+        // get the list of command strings
+        const ls = Object.keys(config.commands).map((key) => {
+		const aliases = config.commands[key].aliases.map((v, i) =>
+			(i ? `\`${config.trigger}${v}\`` : `**\`${config.trigger}${v}\`**`));
+		const description = config.commands[key].description;
+		const aliasString = aliases.join(", ");
+		return `• ${aliasString}:\n\t\t**->** ${description}`;
+	});
+        sendBotString("onCommandListingRequest", (msg) => message.author.send(msg), (msg) => message.author.send(msg), `\n${ls.join("\n")}`);
+}
+
 // map of commands
 const commands = {};
 
@@ -1268,23 +1282,24 @@ function registerCommand(names, f)
 }
 
 // register the commands
-registerCommand(config.commands.joinVoiceChannel, joinVoiceChannel);
-registerCommand(config.commands.leaveVoiceChannel, leaveVoiceChannel);
-registerCommand(config.commands.autoCommand, autoCommand);
-registerCommand(config.commands.requestSheets, requestSheets);
-registerCommand(config.commands.requestMidiFile, requestMidiFile);
-registerCommand(config.commands.requestLilyPondFile, requestLilyPondFile);
-registerCommand(config.commands.requestPdfFile, requestPdfFile);
-registerCommand(config.commands.playTune, playTune);
-registerCommand(config.commands.repeatTune, repeatTune);
-registerCommand(config.commands.stopPlayingTune, stopPlayingTune);
-registerCommand(config.commands.requestHelp, requestHelp);
-registerCommand(config.commands.requestTutorial, requestTutorial);
-registerCommand(config.commands.requestInstruments, requestInstruments);
-registerCommand(config.commands.requestExamples, requestExamples);
-registerCommand(config.commands.requestInviteLink, requestInviteLink);
-registerCommand(config.commands.requestGithubLink, requestGithubLink);
-registerCommand(config.commands.requestInfo, requestInfo);
+registerCommand(config.commands.joinVoiceChannel.aliases, joinVoiceChannel);
+registerCommand(config.commands.leaveVoiceChannel.aliases, leaveVoiceChannel);
+registerCommand(config.commands.autoCommand.aliases, autoCommand);
+registerCommand(config.commands.requestSheets.aliases, requestSheets);
+registerCommand(config.commands.requestMidiFile.aliases, requestMidiFile);
+registerCommand(config.commands.requestLilyPondFile.aliases, requestLilyPondFile);
+registerCommand(config.commands.requestPdfFile.aliases, requestPdfFile);
+registerCommand(config.commands.playTune.aliases, playTune);
+registerCommand(config.commands.repeatTune.aliases, repeatTune);
+registerCommand(config.commands.stopPlayingTune.aliases, stopPlayingTune);
+registerCommand(config.commands.requestHelp.aliases, requestHelp);
+registerCommand(config.commands.requestTutorial.aliases, requestTutorial);
+registerCommand(config.commands.requestInstruments.aliases, requestInstruments);
+registerCommand(config.commands.requestExamples.aliases, requestExamples);
+registerCommand(config.commands.requestInviteLink.aliases, requestInviteLink);
+registerCommand(config.commands.requestGithubLink.aliases, requestGithubLink);
+registerCommand(config.commands.requestInfo.aliases, requestInfo);
+registerCommand(config.commands.requestCommandListing.aliases, requestCommandListing);
 
 /* MAIN BOT INTERFACE */
 

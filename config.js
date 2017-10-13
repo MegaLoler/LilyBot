@@ -51,26 +51,81 @@ else
 	process.exit(1);
 }
 
-// bot command aliases
+// bot command aliases and descriptions
 // these are what the users type in to interact with the bot
 config.commands = {};
-config.commands.joinVoiceChannel = ["join", "voice", "enter", "hello", "come", "comeon", "here"];
-config.commands.leaveVoiceChannel = ["leave", "exit", "part", "bye", "get", "shoo", "goaway", "nasty"];
-config.commands.autoCommand = ["auto"];
-config.commands.requestSheets = ["sheets", "sheet", "sheetmusic", "notation", "png", "render", "look", "see", "draw", "type", "score"];
-config.commands.requestMidiFile = ["midi", "download", "file", "save", "request", "mid", "get"];
-config.commands.requestLilyPondFile = ["lily", "ly", "lilypond", "lyfile", "lilyfile", "lilypondfile", "getly", "getlily", "getlilypondfile"];
-config.commands.requestPdfFile = ["pdf", "document", "downloadsheet", "downloadsheets", "print", "printsheet", "printsheets"];
-config.commands.playTune = ["play", "tune", "listen", "hear", "sound", "audio", "wav"];
-config.commands.repeatTune = ["again", "repeat", "encore"];
-config.commands.stopPlayingTune = ["stop", "quit", "quiet", "end"];
-config.commands.requestHelp = ["help", "commands", "about", "info"];
-config.commands.requestTutorial = ["tutorial", "composing", "how", "howto"];
-config.commands.requestInstruments = ["instruments", "sounds", "programs", "patches", "instrument"];
-config.commands.requestExamples = ["examples", "example", "tunes", "songs", "list", "songlist", "tunelist", "sample", "samples", "juke", "jukebox"];
-config.commands.requestInviteLink = ["invite", "link", "server", "discord"];
-config.commands.requestGithubLink = ["github", "git", "code", "dev", "developer", "creator", "writer", "author", "owner"];
-config.commands.requestInfo = ["info", "about", "information"];
+config.commands.joinVoiceChannel = {
+	aliases: ["join", "voice", "enter", "hello", "come", "comeon", "here"],
+	description: "I'll join you in the voice channel you are in!",
+};
+config.commands.leaveVoiceChannel = {
+	aliases: ["leave", "exit", "part", "bye", "get", "shoo", "goaway", "nasty"],
+	description: "I'll leave the voice channel I'm in...",
+};
+config.commands.autoCommand = {
+	aliases: ["auto"],
+	description: "I'll play tunes you give me if you're in a voice channel or else I'll send you sheet music instead!",
+};
+config.commands.requestSheets = {
+	aliases: ["sheets", "sheet", "sheetmusic", "notation", "png", "render", "look", "see", "draw", "type", "score"],
+	description: "I'll send you some sheet music of the music you sent me!",
+};
+config.commands.requestMidiFile = {
+	aliases: ["midi", "download", "file", "save", "request", "mid", "get"],
+	description: "I'll send you a midi file of the music you gave me!",
+};
+config.commands.requestLilyPondFile = {
+	aliases: ["lily", "ly", "lilypond", "lyfile", "lilyfile", "lilypondfile", "getly", "getlily", "getlilypondfile"],
+	description: "I'll send you the Lilypond file of the music you gave me.",
+};
+config.commands.requestPdfFile = {
+	aliases: ["pdf", "document", "downloadsheet", "downloadsheets", "print", "printsheet", "printsheets"],
+	description: "I'll send you a PDF file of the sheets I made for you~",
+};
+config.commands.playTune = {
+	aliases: ["play", "tune", "listen", "hear", "sound", "audio", "wav"],
+	description: "I'll play the tune you sent me in a voice channel!",
+};
+config.commands.repeatTune = {
+	aliases: ["again", "repeat", "encore"],
+	description: "I'll play whatever I just played again!",
+};
+config.commands.stopPlayingTune = {
+	aliases: ["stop", "quit", "quiet", "end"],
+	description: "I'll stop playing any tunes I'm currently playing.",
+};
+config.commands.requestHelp = {
+	aliases: ["help", "commands", "about", "info"],
+	description: "I'll give you some general help with me and tell you how to get started quickly!",
+};
+config.commands.requestTutorial = {
+	aliases: ["tutorial", "composing", "how", "howto"],
+	description: "I'll send you a more in depth tutorial on how to use me.",
+};
+config.commands.requestInstruments = {
+	aliases: ["instruments", "sounds", "programs", "patches", "instrument"],
+	description: "I'll send you a listing of all the instrument names I recognize.",
+};
+config.commands.requestExamples = {
+	aliases: ["examples", "example", "tunes", "songs", "list", "songlist", "tunelist", "sample", "samples", "juke", "jukebox"],
+	description: "I'll send you lots of examples from various users so you can get some ideas of things you can make with me!",
+};
+config.commands.requestInviteLink = {
+	aliases: ["invite", "link", "server", "discord"],
+	description: "I'll send you the link to invite me to your own Discord server!",
+};
+config.commands.requestGithubLink = {
+	aliases: ["github", "git", "code", "dev", "developer", "creator", "writer", "author", "owner"],
+	description: "I'll send you a link to my Github repository!",
+};
+config.commands.requestInfo = {
+	aliases: ["info", "about", "information"],
+	description: "See who made me, and what I was made with, and see how to get some useful links!",
+};
+config.commands.requestCommandListing = {
+	aliases: ["commands", "command", "commandlist", "commandlisting"],
+	description: "Get a complete listing of all the commands I recognize and a description of what they do~",
+};
 
 // links
 const inviteLink = "https://discordapp.com/oauth2/authorize?client_id=366712156898590720&scope=bot&permissions=0";
@@ -116,6 +171,7 @@ const helpString = `Hi! I'm **LilyBot**!  I will make sheet music of tunes you c
 • \`${config.trigger}invite\` — If you like me a lot, you can invite me to your own Discord server!
 • \`${config.trigger}github\` — Visit my Github repository!
 • \`${config.trigger}info\` — Get some technical information about me~
+• \`${config.trigger}commands\` — Have a full listing of all the commands I recognize!
 
 **How to make tunes!** _(Quick Start)_
 First, meet me in a voice channel. (I'll join you automatically when you ask me to play.) Then ask me to play _Bad Apple_ like this: \`\`\`${config.trigger}defg a- >dc <a-d- agfe defg a-gf edef edc#e defg a- >dc <a-d- agfe defg a-gf e.f.g.a.\`\`\`
@@ -275,6 +331,11 @@ config.botStrings = {
 	// when you ask for info on the bot
 	"onInfoRequest": {
 		string: infoString,
+		enabled: true,
+	},
+	// when you ask for listing of commands
+	"onCommandListingRequest": {
+		string: "Here's all the commands you can use with me:",
 		enabled: true,
 	},
 };
