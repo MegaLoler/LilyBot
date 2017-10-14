@@ -1,8 +1,9 @@
 // todo:
 // make a github.io page :3
 // percussion support
+// MULTIPAGE/LONGPAGE MIDI
+// changing key/time/clef/tempo/instrument mid staff
 // update examples... make them sheet worthy
-// proper commands listing with descriptions and stuff
 // command args
 //   invite and github for others
 //   join specific channels
@@ -281,9 +282,9 @@ function tuneBotExpression2LilyPondScore(expression)
 			}
 
 			// go through each input char
-			for(var c of p.toLowerCase())
+			for(var c of p)
 			{
-				if("abcdefg".indexOf(c) != -1)
+				if("abcdefg".indexOf(c.toLowerCase()) != -1)
 				{
 					flush();
 					noteBuffer = c;
@@ -328,6 +329,16 @@ function tuneBotExpression2LilyPondScore(expression)
 				{
 					flush();
 					output += "} ";
+				}
+				else if(c == 'U')
+				{
+					flush();
+					unitValue *= 2;
+				}
+				else if(c == 'u')
+				{
+					flush();
+					unitValue /= 2;
 				}
 				else if(c == '[')
 				{
