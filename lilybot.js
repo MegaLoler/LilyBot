@@ -374,6 +374,11 @@ function tuneBotExpression2LilyPondScore(expression)
 					flush();
 					output += "| ";
 				}
+				else if(c == 'z')
+				{
+					flush();
+					suffix += "^\"pizz.\"";
+				}
 				else if(c == '^')
 				{
 					flush();
