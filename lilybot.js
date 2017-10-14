@@ -49,6 +49,7 @@
 // pickup
 // key / tempso /time changes
 // be safe on checking for GUILD.ID
+// easy one measure rests
 
 // libraries
 const { spawn } = require("child_process");
@@ -345,6 +346,17 @@ function tuneBotExpression2LilyPondScore(expression)
 				else if(c == '-')
 				{
 					if(!inChord) lengthBuffer++;
+				}
+				else if(c == 'r')
+				{
+					if(inChord) continue;
+					if(!pendingChord && noteBuffer.startsWith("r")) lengthBuffer += 4;
+					else
+					{
+						flush();
+						noteBuffer = "r";
+						lengthBuffer = 4;
+					}
 				}
 				else if(c == '.')
 				{
