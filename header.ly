@@ -2,6 +2,3 @@
 \header { 
   tagline = ""
 } 
-\paper {
-  page-count = 1
-}

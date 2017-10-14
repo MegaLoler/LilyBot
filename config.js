@@ -15,10 +15,11 @@ const config = {};
 // auto join when asked to play and not in voice yet
 // auto stop playing tune when asked to play and already playing one
 // code block alias is what to put after ``` to give block code to the bot
-// file send name is what to name the scratch files requested over discord
+// scratch file name is the name of the scratch files in the scratch directory, also what people see when sent files
 // token file is the file to read the login token from
 // discord bots token file is file to read the discordbots.org api token from
 // support link is invite to support server support channel
+// delay is how many miliseconds to wait before calling back after mogrify and after lilypond
 config.testing = process.argv[2] == "test";
 config.trigger = config.testing ? "t--" : "~~";
 config.singleTrigger = true;
@@ -30,11 +31,12 @@ config.autoLeaveTimout = 600; // 10 minutes
 config.autoJoin = true;
 config.autoStop = true;
 config.scratchDirectory = "scratch";
-config.fileSendName = "lilybot";
+config.scratchFileName = "lilybot";
 config.tokenFile = "token.txt";
 config.discordBotsTokenFile = "discordBotsToken.txt";
 config.author = "Mego#8517";
 config.framework = `discord.js ${discord.version}`;
+config.delay = 500;
 
 // links
 const inviteLink = "https://discordapp.com/oauth2/authorize?client_id=366712156898590720&scope=bot&permissions=0";

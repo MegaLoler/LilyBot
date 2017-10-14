@@ -51,6 +51,8 @@
 // key / tempso /time changes
 // be safe on checking for GUILD.ID
 // easy one measure rests
+// transpose
+// something better than delaying a set delay for waiting til files are available and done with???
 
 // libraries
 const { spawn } = require("child_process");
@@ -80,9 +82,6 @@ function makeLilyPondScore(code, sheetTitle, composer)
   title = "${sheetTitle}"
   composer = "${composer}"
 } 
-\\paper {
-  page-count = 1
-}
 \\score {
 ${code}
 \\layout { }
@@ -465,6 +464,13 @@ function runCommand(cmd, args, callback, errorCallback, stdoutCallback)
         });
 }
 
+// rm a file or two lol
+function removeFiles(paths, callback)
+{
+	if(paths.length) runCommand("rm", paths, callback, console.error);
+	else callback();
+}
+
 // make sure a directory exists in file system
 function assertPath(path, callback)
 {
@@ -492,9 +498,12 @@ function midi2ly(inFile, outFile, callback, errorCallback)
 // also use to output midi
 function convertLilyPond(inFile, outFile, callback, errorCallback)
 {
-	runCommand("lilypond", ["-dsafe", "-fpdf", "-fpng", "-o", `${trimFileExtension(outFile)}`, inFile], () => {
-		runCommand("mogrify", ["-trim", outFile], callback, errorCallback);
-	}, errorCallback);
+	runCommand("lilypond", ["-dsafe", "-fpdf", "-fpng", "-o", `${trimFileExtension(outFile)}`, inFile], () => setTimeout(() => {
+		const path = outFile.replace(/[^\/]*$/, "");
+		getPngFiles(path, (files) => {
+			runCommand("mogrify", ["-trim"].concat(files), () => setTimeout(callback, config.delay), errorCallback);
+		});
+	}, config.delay), errorCallback);
 }
 
 /* BOT UTILITY FUNCTIONS */
@@ -540,51 +549,60 @@ function saveLilyPondFile(code, user, guild, callback, errorCallback)
 // download the scratch midi file from the attachment url
 function saveScratchMidi(attachment, user, guild, callback, errorCallback)
 {
-	getGuildScratchFile(guild, "midi", (file) => {
-		downloadFile(attachment.url, file, callback, errorCallback);
-	});
+	if(guild)
+	{
+		getGuildScratchFile(guild, "midi", (file) => {
+			downloadFile(attachment.url, file, callback, errorCallback);
+		});
+	}
+	else
+	{
+		getUserScratchFile(user, "midi", (file) => {
+			downloadFile(attachment.url, file, callback, errorCallback);
+		});
+	}
 }
 
 // download the scratch lilypond file from the attachment url
 function saveAttachedLilyPondFile(attachment, user, guild, callback, errorCallback)
 {
-	getGuildScratchFile(guild, "ly", (file) => {
-		downloadFile(attachment.url, file, callback, errorCallback);
-	});
+	if(guild)
+	{
+		getGuildScratchFile(guild, "ly", (file) => {
+			downloadFile(attachment.url, file, callback, errorCallback);
+		});
+	}
+	else
+	{
+		getUserScratchFile(user, "ly", (file) => {
+			downloadFile(attachment.url, file, callback, errorCallback);
+		});
+	}
 }
 
 // convert a scratch midi to lilypond file
 function convertScratchMidiToLilyPondFile(user, guild, callback, errorCallback)
 {
-	getGuildScratchFile(guild, "ly", (lilyFile) => {
-		getGuildScratchFile(guild, "midi", (midiFile) => {
-			midi2ly(midiFile, lilyFile, callback, errorCallback);
+	if(guild)
+	{
+		getGuildScratchFile(guild, "ly", (lilyFile) => {
+			getGuildScratchFile(guild, "midi", (midiFile) => {
+				midi2ly(midiFile, lilyFile, callback, errorCallback);
+			});
 		});
-	});
+	}
+	else
+	{
+		getUserScratchFile(user, "ly", (lilyFile) => {
+			getUserScratchFile(user, "midi", (midiFile) => {
+				midi2ly(midiFile, lilyFile, callback, errorCallback);
+			});
+		});
+	}
 }
 
 // render the scratch lilypond file to the scratch midi file with lilypond
 function convertToScratchMidi(user, guild, callback, errorCallback)
-{
-	getGuildScratchFile(guild, "ly", (lilyFile) => {
-		getGuildScratchFile(guild, "png", (imageFile) => {
-			convertLilyPond(lilyFile, imageFile, callback, errorCallback);
-		});
-	});
-}
-
-// render the scratch midi file to the scratch wav file with timidity
-function renderScratchMidi(user, guild, callback, errorCallback)
-{
-	getGuildScratchFile(guild, "midi", (midiFile) => {
-		getGuildScratchFile(guild, "wav", (waveFile) => {
-			renderMidi(midiFile, waveFile, callback, errorCallback);
-		});
-	});
-}
-
-// render the scratch lilypond file to scratch sheet music file with lilypond
-function renderScratchSheetMusic(user, guild, callback, errorCallback)
 {
 	if(guild)
 	{
@@ -601,6 +619,52 @@ function renderScratchSheetMusic(user, guild, callback, errorCallback)
 				convertLilyPond(lilyFile, imageFile, callback, errorCallback);
 			});
 		});
+	}
+}
+
+// render the scratch midi file to the scratch wav file with timidity
+function renderScratchMidi(user, guild, callback, errorCallback)
+{
+	if(guild)
+	{
+		getGuildScratchFile(guild, "midi", (midiFile) => {
+			getGuildScratchFile(guild, "wav", (waveFile) => {
+				renderMidi(midiFile, waveFile, callback, errorCallback);
+			});
+		});
+	}
+	else
+	{
+		getUserScratchFile(user, "midi", (midiFile) => {
+			getUserScratchFile(user, "wav", (waveFile) => {
+				renderMidi(midiFile, waveFile, callback, errorCallback);
+			});
+		});
+	}
+}
+
+// render the scratch lilypond file to scratch sheet music file with lilypond
+function renderScratchSheetMusic(user, guild, callback, errorCallback)
+{
+	if(guild)
+	{
+		getGuildPngFiles(guild, (files) => removeFiles(files, () => {
+			getGuildScratchFile(guild, "ly", (lilyFile) => {
+				getGuildScratchFile(guild, "png", (imageFile) => {
+					convertLilyPond(lilyFile, imageFile, callback, errorCallback);
+				});
+			});
+		}));
+	}
+	else
+	{
+		getUserPngFiles(user, (files) => removeFiles(files, () => {
+			getUserScratchFile(user, "ly", (lilyFile) => {
+				getUserScratchFile(user, "png", (imageFile) => {
+					convertLilyPond(lilyFile, imageFile, callback, errorCallback);
+				});
+			});
+		}));
 	}
 }
 
@@ -640,6 +704,86 @@ function trimFileExtension(filename)
 	return filename.replace(/\.[^/.]+$/, "");
 }
 
+// get all of the png files in a scratch directory
+function getPngFiles(scratchPath, callback)
+{
+	// the list of scratch png files
+	const ls = [];
+	// add all of them to the list
+	// and call callback when the list is populated
+	forEachPng(scratchPath, (file) => ls.push(file), () => callback(ls));
+}
+
+// get a list of png files in a user scratch directory
+function getUserPngFiles(user, callback)
+{
+	const scratchPath = getUserScratchPath(user);
+	getPngFiles(scratchPath, callback);
+}
+
+// get a list of png files in a guild scratch directory
+function getGuildPngFiles(guild, callback)
+{
+	const scratchPath = getGuildScratchPath(guild);
+	getPngFiles(scratchPath, callback);
+}
+
+// do something for each png file in a scratch directory
+// call callback after done f for all
+function forEachPng(scratchPath, f, endCallback)
+{
+	// do f if file exists
+	function doIfExists(path, f, cont, endCallback)
+	{
+		fs.access(path, fs.constants.R_OK, (error) => {
+			// if it exists
+			if(!error)
+			{
+				// do the thing for it
+				f(path);
+				// and continuation function
+				if(cont) cont();
+			}
+			// call this when the chain is finished
+			else if(endCallback) endCallback();
+		});
+	}
+
+	// the file of a single page output
+	const singleFile = `${scratchPath}/${config.scratchFileName}.png`;
+	doIfExists(singleFile, f);
+
+	// get a page file from the page number
+	function getPageFile(i)
+	{
+		return `${scratchPath}/${config.scratchFileName}-page${i}.png`;
+	}
+
+	// go through possible multipage outputs
+	function doPageFile(i)
+	{
+		const pageFile = getPageFile(i);
+		doIfExists(pageFile, f, () => {
+			doPageFile(i + 1);
+		}, endCallback);
+	}
+	doPageFile(1);
+}
+
+// do something fro each png in a user scratch directory
+function forEachUserPng(user, f, callback)
+{
+	const scratchPath = getUserScratchPath(user);
+	forEachPng(scratchPath, f, callback);
+}
+
+// do something fro each png in a guild scratch directory
+function forEachGuildPng(guild, f, callback)
+{
+	const scratchPath = getGuildScratchPath(guild);
+	forEachPng(scratchPath, f, callback);
+}
+
 // get the scratch directory for a user
 function getUserScratchPath(user)
 {
@@ -657,7 +801,7 @@ function getUserScratchFile(user, extension, callback)
 {
 	const path = getUserScratchPath(user);
 	assertPath(path, () => {
-		callback(`${path}/scratch.${extension}`);
+		callback(`${path}/${config.scratchFileName}.${extension}`);
 	});
 }
 
@@ -666,7 +810,7 @@ function getGuildScratchFile(guild, extension, callback)
 {
 	const path = getGuildScratchPath(guild);
 	assertPath(path, () => {
-		callback(`${path}/scratch.${extension}`);
+		callback(`${path}/${config.scratchFileName}.${extension}`);
 	});
 }
 
@@ -795,7 +939,36 @@ function reply(message, msg, options)
 // send a file in response to message
 function doSend(file, message, callback)
 {
-	fs.access(file, fs.constants.R_OK, (error) => {
+	doSends([file], message, callback);
+}
+
+// send as many files as you like in response to a message
+function doSends(files, message, callback, first=true)
+{
+	// send 10 at a time
+	if(files.length)
+	{
+		// 10 is max discord file send
+		const filesHead = files.slice(0, 10);
+		const filesRest = files.slice(10);
+		if(first)
+		{
+			sendBotString("onSendFile", (msg) => {
+				reply(message, msg, {
+					files: filesHead
+				}).then(() => doSends(filesRest, message, callback, false)).catch(console.error);
+			});
+		}
+		else
+		{
+			message.channel.send("", {
+				files: filesHead
+			}).then(() => doSends(filesRest, message, callback, false)).catch(console.error);
+		}
+	}
+	else callback();
+	// no more renaming, its messy
+/*	fs.access(file, fs.constants.R_OK, (error) => {
 		if(error)
 		{
 			console.log(error);
@@ -803,7 +976,7 @@ function doSend(file, message, callback)
 		}
 		else
 		{
-			const movedFile = file.replace(/(.*)\/.*(\..*$)/, "$1/" + config.fileSendName + "$2");
+			const movedFile = file.replace(/(.*)\/.*(\..*$)/, "$1/" + config.scratchFileName + "$2");
 			fs.rename(file, movedFile, () => {
 				sendBotString("onSendFile", (msg) => {
 					reply(message, msg, {
@@ -814,17 +987,18 @@ function doSend(file, message, callback)
 				});
 			});
 		}
-	});
-}
-
-// subcommand to post the pdf sheet music scratch file
-function giveSheets(message, callback)
-{
-	if(message.guild) getGuildScratchFile(message.guild, "png", (file) => doSend(file, message, callback));
-	else getUserScratchFile(message.author, "png", (file) => doSend(file, message, callback));
+	});*/
 }
 
 // subcommand to post the png sheet music scratch file
+function giveSheets(message, callback)
+{
+	// send all the generated png files
+	if(message.guild) getGuildPngFiles(message.guild, (files) => doSends(files, message, callback));
+	else getUserPngFiles(message.author, (files) => doSends(files, message, callback));
+}
+
+// subcommand to post the pdf sheet music scratch file
 function givePdf(message, callback)
 {
 	if(message.guild) getGuildScratchFile(message.guild, "pdf", (file) => doSend(file, message, callback));
@@ -1183,6 +1357,8 @@ function playTune(code, args, message)
 							doPlay(message);
 						}, errorCallback);
 					}, errorCallback);
+					// then convert it to sheets incase someone wants it
+					renderScratchSheetMusic(message.author, message.guild, (errorCallback) => {}, errorCallback);
 				}, (error) => {
 					console.error(error);
 					sendBotString("onTuneError", (msg) => reply(message, msg));
@@ -1201,6 +1377,8 @@ function playTune(code, args, message)
 					console.error(error);
 					sendBotString("onTuneError", (msg) => reply(message, msg));
 				});
+				// then convert it to sheets incase someone wants it
+				renderScratchSheetMusic(message.author, message.guild, (errorCallback) => {}, errorCallback);
 			});
 		}
 		else
