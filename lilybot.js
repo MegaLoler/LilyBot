@@ -42,6 +42,13 @@
 // multi page out support ? ? 
 // soundfont selection??
 // pretty things up with embeds??
+// transposition
+// letter names rendering
+// fix badly formated key commands so they dont crash
+// AND ADD SYNTAX ERROR REPORTS ? ? 
+// pickup
+// key / tempso /time changes
+// be safe on checking for GUILD.ID
 
 // libraries
 const { spawn } = require("child_process");
@@ -111,9 +118,9 @@ function tuneBotExpression2LilyPondScore(expression)
 		if(newStaffPending) output += `}\n\\new Staff { \\set Staff.midiInstrument = #"${instrument}" \\${tempo} `;
 		newStaffPending = false;
 
-		if(p in config.programs)
+		if(p.toLowerCase() in config.programs)
 		{
-			const i = config.instrumentNames[config.programs[p]];
+			const i = config.instrumentNames[config.programs[p.toLowerCase()]];
 			output += `\\set Staff.midiInstrument = #"${i}" `;
 			instrument = i;
 		}
@@ -132,9 +139,11 @@ function tuneBotExpression2LilyPondScore(expression)
 			const args = p.split(" ").filter((v) => {
 				return v.length;
 			});
-			const key = args[1].replace(/\#/g, "is").replace(/\&/g, "es");
-
-			output += `\\${args[0]} ${key} \\${args[2]} `;
+			if(args.length > 1)
+			{
+				const key = args[1].replace(/\#/g, "is").replace(/\&/g, "es");
+				output += `\\${args[0]} ${key} \\${args[2]} `;
+			}
 		}
 		else if(p.startsWith("tempo"))
 		{
