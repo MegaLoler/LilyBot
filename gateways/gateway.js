@@ -11,11 +11,11 @@ class Gateway {
 	}
 
 	// interact with the gateway
-	send(message) {}
+	send(message, attachments=[]) {}
 	play(audio) {}
 
 	// events coming from the gateway
-	onMessage(message, attachments) {}
+	onMessage(message, attachments=[]) {}
 }
 
 module.exports = Gateway;
