@@ -1,6 +1,8 @@
 LilyBot
 ========
 
+_This is the 3.0 branch, currently reworking a lot of things!_
+
 A LilyPond-powered Discord bot written for Node.js for composing and playing tunes in voice channels and rendering sheet music on the fly!
 
 ## Add it to your Discord Server
@@ -16,10 +18,9 @@ Node.js dependencies:
 
 Command line dependencies:
 `lilypond`
-`midi2ly`
-`python2.6`
 `mogrify`
 `timidity`
+`ffmpeg`
 
 ## Run
 
