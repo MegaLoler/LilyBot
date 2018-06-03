@@ -4,8 +4,21 @@
  * and simplified a bit
  */
 
+// the conversion cache
+const cache = require("./cache");
+const Attachment = require("./gateways/gateway").Attachment;
+
 // config
 const config = require("./config");
+
+/* UTIL */
+
+// get the file extension of a filename
+function getFileExtension(filename)
+{
+	const re = /(?:\.([^.]+))?$/;
+	return re.exec(filename)[1];
+}
 
 /* BOT COMMAND FUNCTIONS */
 
@@ -85,6 +98,76 @@ function requestCommandListing(arg, args, gateway)
 	gateway.send(`${config.botStrings['onCommandListingRequest'].string}\n${ls.join("\n")}`);
 }
 
+function getLegacy(arg, args, gateway) {
+	if(arg.length) putTune(arg, gateway);
+	cache.get(gateway.cacheId, 'legacy', data => {
+		const att = new Attachment('lily.tune', data);
+		gateway.send('Here ya go!', [att]);
+	}, err => gateway.send(`Something went wrong... ><\n\`\`\`${err}\`\`\``));
+}
+
+function getSheets(arg, args, gateway) {
+	if(arg.length) putTune(arg, gateway);
+	cache.get(gateway.cacheId, 'png', data => {
+		const att = new Attachment('lily.png', data);
+		gateway.send('Here ya go!', [att]);
+	}, err => gateway.send(`Something went wrong... ><\n\`\`\`${err}\`\`\``));
+}
+
+function getPdf(arg, args, gateway) {
+	if(arg.length) putTune(arg, gateway);
+	cache.get(gateway.cacheId, 'pdf', data => {
+		const att = new Attachment('lily.pdf', data);
+		gateway.send('Here ya go!', [att]);
+	}, err => gateway.send(`Something went wrong... ><\n\`\`\`${err}\`\`\``));
+}
+
+function getMidi(arg, args, gateway) {
+	if(arg.length) putTune(arg, gateway);
+	cache.get(gateway.cacheId, 'midi', data => {
+		const att = new Attachment('lily.mid', data);
+		gateway.send('Here ya go!', [att]);
+	}, err => gateway.send(`Something went wrong... ><\n\`\`\`${err}\`\`\``));
+}
+
+function getWave(arg, args, gateway) {
+	if(arg.length) putTune(arg, gateway);
+	cache.get(gateway.cacheId, 'wave', data => {
+		const att = new Attachment('lily.wav', data);
+		gateway.send('Here ya go!', [att]);
+	}, err => gateway.send(`Something went wrong... ><\n\`\`\`${err}\`\`\``));
+}
+
+function getMp3(arg, args, gateway) {
+	if(arg.length) putTune(arg, gateway);
+	cache.get(gateway.cacheId, 'mp3', data => {
+		const att = new Attachment('lily.mp3', data);
+		gateway.send('Here ya go!', [att]);
+	}, err => gateway.send(`Something went wrong... ><\n\`\`\`${err}\`\`\``));
+}
+
+function getLily(arg, args, gateway) {
+	if(arg.length) putTune(arg, gateway);
+	cache.get(gateway.cacheId, 'lily', data => {
+		const att = new Attachment('lily.ly', data);
+		gateway.send('Here ya go!', [att]);
+	}, err => gateway.send(`Something went wrong... ><\n\`\`\`${err}\`\`\``));
+}
+
+function playTune(arg, args, gateway) {
+	if(arg.length) putTune(arg, gateway);
+	cache.get(gateway.cacheId, 'wave', gateway.play, err => gateway.send(`Something went wrong... ><\n\`\`\`${err}\`\`\``));
+}
+
+function stopPlayingTune(arg, args, gateway) {
+	gateway.stop();
+}
+
+// helper command for putting new tune in....
+function putTune(expr, gateway) {
+	cache.put(gateway.cacheId, 'legacy', expr);
+}
+
 // map of commands
 const commands = {};
 
@@ -99,14 +182,15 @@ function registerCommand(names, f)
 }
 
 // register the commands
-/*registerCommand(config.commands.requestSheets.aliases, requestSheets);
-registerCommand(config.commands.requestMidiFile.aliases, requestMidiFile);
-registerCommand(config.commands.requestLilyPondFile.aliases, requestLilyPondFile);
-registerCommand(config.commands.requestPdfFile.aliases, requestPdfFile);
+registerCommand(['legacy', 'old'], getLegacy);
+registerCommand(config.commands.requestSheets.aliases, getSheets);
+registerCommand(config.commands.requestPdfFile.aliases, getPdf);
+registerCommand(config.commands.requestMidiFile.aliases, getMidi);
+registerCommand(config.commands.requestLilyPondFile.aliases, getLily);
+registerCommand(['wave', 'wav', 'recording', 'audio'], getWave);
+registerCommand(['mp3'], getMp3);
 registerCommand(config.commands.playTune.aliases, playTune);
-registerCommand(config.commands.repeatTune.aliases, repeatTune);
 registerCommand(config.commands.stopPlayingTune.aliases, stopPlayingTune);
-*/
 registerCommand(config.commands.requestHelp.aliases, requestHelp);
 registerCommand(config.commands.requestTutorial.aliases, requestTutorial);
 registerCommand(config.commands.requestInstruments.aliases, requestInstruments);
@@ -134,7 +218,7 @@ function executeCommand(cmd, arg, args, gateway)
 
 // process a message to the bot
 // the message string, and the originating discord message object
-function processBotMessage(msg, attachments, gateway)
+function processBotMessage(msg, attachments=[], gateway)
 {
 	// cmd is case insensitive, args retain case
 	const words = msg.split(/\s+/g);
@@ -145,10 +229,18 @@ function processBotMessage(msg, attachments, gateway)
 		return v.length;
 	});
 
+	// guess only one attachment per message is supported for now
+	// but later....... >:33333333
+	if(attachments.length) {
+		const obj = attachemnts[0];
+		const type = getFileExtension(obj.name);
+		cache.put(gateway.cacheId, type, obj.data);
+	}
+
 	// execute the command
-	// assume "auto" command if none other found
+	// default to requesting sheets i supose
 	if(!executeCommand(cmd, arg, args, gateway))
-		gateway.send("cmd not found lol");
+		executeCommand('sheets', msg, words, gateway);
 }
 
 module.exports = processBotMessage;

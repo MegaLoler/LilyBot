@@ -4,9 +4,9 @@ const os = require('os');
 const fs = require('fs');
 const readline = require('readline');
 const player = require('play-sound')();
-const Gateway = require('./gateway');
+const gateway = require('./gateway');
 
-class CLI extends Gateway {
+class CLI extends gateway.Gateway {
 	constructor(inPrompt='> ', outPrompt = '< ') {
 		const username = os.userInfo().username;
 		const hostname = os.hostname();
@@ -17,11 +17,15 @@ class CLI extends Gateway {
 
 	ready() {
 		process.stdout.clearLine();
-		process.stdout.write(this.outPrompt);
+		process.stdout.write(this.inPrompt);
 	}
 
-	send(message) {
+	send(message, attachments=[]) {
 		console.log(`${this.outPrompt}${message}`);
+		// and i guess just write the attachments to tmp files? lol
+		attachments.forEach(x => {
+			fs.writeFile(`/tmp/attachment-${x.name}`, x.data, console.error);
+		});
 	}
 
 	play(audio) {
@@ -41,6 +45,7 @@ class CLI extends Gateway {
 			this.onMessage(line);
 			this.ready();
 		});
+		this.ready();
 	}
 }
 

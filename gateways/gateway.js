@@ -2,6 +2,13 @@
  * wraps up details about a channel directly to a user
  */
 
+class Attachment {
+	constructor(filename, data) {
+		this.name = filename;
+		this.data = data;
+	}
+}
+
 class Gateway {
 	constructor(platform, nick, id, cacheId=id) {
 		this.platform = platform;
@@ -13,9 +20,13 @@ class Gateway {
 	// interact with the gateway
 	send(message, attachments=[]) {}
 	play(audio) {}
+	stop() {}
 
 	// events coming from the gateway
 	onMessage(message, attachments=[]) {}
 }
 
-module.exports = Gateway;
+module.exports = {
+	Attachment: Attachment,
+	Gateway: Gateway,
+};
