@@ -55,7 +55,7 @@ else
 if(fs.existsSync(config.discordBotsTokenFile)) config.discordBotsToken = fs.readFileSync(config.discordBotsTokenFile, "ascii").trim();
 else
 {
-	console.error(`Please create the file "${config.discordBotsTokenFile}" and put your Discord token inside.`);
+	console.error(`Please create the file "${config.discordBotsTokenFile}" and put your Discord Bots (the website) token inside.`);
 	process.exit(1);
 }
 

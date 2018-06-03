@@ -13,11 +13,26 @@ const config = require("./config");
 
 /* UTIL */
 
+// mapping of file extensions to target types
+const extensionTypes = {
+	wav: 'wave',
+	mp3: 'mp3',
+	pdf: 'pdf',
+	png: 'png',
+	mid: 'midi',
+	ly: 'lilypond',
+	tune: 'legacy',
+}
+
 // get the file extension of a filename
 function getFileExtension(filename)
 {
 	const re = /(?:\.([^.]+))?$/;
 	return re.exec(filename)[1];
+}
+
+function getTargetType(filename) {
+	return extensionTypes[getFileExtension(filename)];
 }
 
 /* BOT COMMAND FUNCTIONS */
@@ -101,8 +116,7 @@ function requestCommandListing(arg, args, gateway)
 function getLegacy(arg, args, gateway) {
 	if(arg.length) putTune(arg, gateway);
 	cache.get(gateway.cacheId, 'legacy', data => {
-		const att = new Attachment('lily.tune', data);
-		gateway.send('Here ya go!', [att]);
+		gateway.send(`Here ya go!\n\`\`\`lily\n${data}\`\`\``);
 	}, err => gateway.send(`Something went wrong... ><\n\`\`\`${err}\`\`\``));
 }
 
@@ -232,8 +246,8 @@ function processBotMessage(msg, attachments=[], gateway)
 	// guess only one attachment per message is supported for now
 	// but later....... >:33333333
 	if(attachments.length) {
-		const obj = attachemnts[0];
-		const type = getFileExtension(obj.name);
+		const obj = attachments[0];
+		const type = getTargetType(obj.name);
 		cache.put(gateway.cacheId, type, obj.data);
 	}
 

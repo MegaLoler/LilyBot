@@ -24,6 +24,9 @@ class Gateway {
 
 	// events coming from the gateway
 	onMessage(message, attachments=[]) {}
+
+	// establish the interface
+	engage() {}
 }
 
 module.exports = {
