@@ -490,7 +490,7 @@ function renderMidi(inFile, outFile, callback, errorCallback)
 function midi2ly(inFile, outFile, callback, errorCallback)
 {
 	runCommand("which", ["midi2ly"], undefined, errorCallback, (path, child) => {
-		runCommand("python2.6", [path.toString().trim(), "-i", "header.ly", inFile, "-o", outFile], callback, errorCallback);
+		runCommand("python", [path.toString().trim(), "-i", "header.ly", inFile, "-o", outFile], callback, errorCallback);
 	}, errorCallback);
 }
 
@@ -817,7 +817,7 @@ function getGuildScratchFile(guild, extension, callback)
 // get the voice connection (if connected) of a guild
 function getVoiceConnection(guild)
 {
-	return client.voiceConnections.filter((connection) => {
+	return client.voice.connections.filter((connection) => {
 		return guild.id === connection.channel.guild.id;
 	}).first();
 }
@@ -833,7 +833,7 @@ function isPlaying(guild)
 function playSound(file, guild)
 {
 	const voiceConnection = getVoiceConnection(guild);
-	dispatchers[guild.id] = voiceConnection.playFile(file);
+	dispatchers[guild.id] = voiceConnection.play(file);
 	playingStatus[guild.id] = true;
 
 	dispatchers[guild.id].on("end", () => {
@@ -1033,6 +1033,7 @@ function doPlay(message, successCallback)
 				}
 				else
 				{
+			    sendBotString("onPlay", (msg) => reply(message, msg));
 					playSound(file, message.guild);
 					voiceEvent(message.guild);
 					if(successCallback) successCallback();
@@ -1047,7 +1048,7 @@ function doPlay(message, successCallback)
 // subcommand just to perform the join of the voice channel of the member of the message
 function doJoin(message, callback, verbose=true)
 {
-	message.member.voiceChannel.join().then(connection => {
+	message.member.voice.channel.join().then(connection => {
 		if(verbose) sendBotString("onJoinVoiceChannel", (msg) => reply(message, msg));
 		voiceEvent(message.guild);
 		if(callback) callback();
@@ -1063,7 +1064,7 @@ function tryAutoJoin(message, callback)
 		callback();
 		return true;
 	}
-	else if(config.autoJoin && message.member.voiceChannel)
+	else if(config.autoJoin && message.member.voice.channel)
 	{
 		doJoin(message, callback, false);
 		return true;
@@ -1101,7 +1102,7 @@ function requestToPlay(message, successCallback, failCallback)
 function joinVoiceChannel(arg, args, message)
 {
 	if(!message.guild) sendBotString("onPrivateJoinVoiceChannelFail", (msg) => reply(message, msg));
-	else if(message.member.voiceChannel) doJoin(message);
+	else if(message.member.voice.channel) doJoin(message);
 	else sendBotString("onJoinVoiceChannelFail", (msg) => reply(message, msg));
 }
 
@@ -1130,7 +1131,7 @@ function leaveVoiceChannel(arg, args, message)
 function autoCommand(code, args, message)
 {
 	const attachment = message.attachments.first();
-	if(message.guild && message.member.voiceChannel) playTune(code, args, message);
+	if(message.guild && message.member.voice.channel) playTune(code, args, message);
 	else requestSheets(code, args, message);
 }
 
@@ -1143,7 +1144,7 @@ function requestPdfFile(code, args, message)
 	const attachment = message.attachments.first();
 	if(attachment)
 	{
-		if(hasExtension(attachment.filename, ["mid", "midi"]))
+		if(hasExtension(attachment.name, ["mid", "midi"]))
 		{
 			saveScratchMidi(attachment, message.author, message.guild, (errorCallback) => {
 				convertScratchMidiToLilyPondFile(message.author, message.guild, (errorCallback) => {
@@ -1156,7 +1157,7 @@ function requestPdfFile(code, args, message)
 				sendBotString("onCorruptMidiFile", (msg) => reply(message, msg));
 			});
 		}
-		else if(hasExtension(attachment.filename, ["ly"]))
+		else if(hasExtension(attachment.name, ["ly"]))
 		{
 			saveAttachedLilyPondFile(attachment, message.author, message.guild, (errorCallback) => {
 				renderScratchSheetMusic(message.author, message.guild, (errorCallback) => {
@@ -1192,7 +1193,7 @@ function requestSheets(code, args, message)
 	const attachment = message.attachments.first();
 	if(attachment)
 	{
-		if(hasExtension(attachment.filename, ["mid", "midi"]))
+		if(hasExtension(attachment.name, ["mid", "midi"]))
 		{
 			saveScratchMidi(attachment, message.author, message.guild, (errorCallback) => {
 				convertScratchMidiToLilyPondFile(message.author, message.guild, (errorCallback) => {
@@ -1205,7 +1206,7 @@ function requestSheets(code, args, message)
 				sendBotString("onCorruptMidiFile", (msg) => reply(message, msg));
 			});
 		}
-		else if(hasExtension(attachment.filename, ["ly"]))
+		else if(hasExtension(attachment.name, ["ly"]))
 		{
 			saveAttachedLilyPondFile(attachment, message.author, message.guild, (errorCallback) => {
 				renderScratchSheetMusic(message.author, message.guild, (errorCallback) => {
@@ -1241,7 +1242,7 @@ function requestLilyPondFile(code, args, message)
 	const attachment = message.attachments.first();
 	if(attachment)
 	{
-		if(hasExtension(attachment.filename, ["mid", "midi"]))
+		if(hasExtension(attachment.name, ["mid", "midi"]))
 		{
 			saveScratchMidi(attachment, message.author, message.guild, (errorCallback) => {
 				convertScratchMidiToLilyPondFile(message.author, message.guild, (errorCallback) => {
@@ -1252,7 +1253,7 @@ function requestLilyPondFile(code, args, message)
 				sendBotString("onCorruptMidiFile", (msg) => reply(message, msg));
 			});
 		}
-		else if(hasExtension(attachment.filename, ["ly"]))
+		else if(hasExtension(attachment.name, ["ly"]))
 		{
 			saveAttachedLilyPondFile(attachment, message.author, message.guild, (errorCallback) => {
 				convertToScratchMidi(message.author, message.guild, (errorCallback) => {
@@ -1286,7 +1287,7 @@ function requestMidiFile(code, args, message)
 	const attachment = message.attachments.first();
 	if(attachment)
 	{
-		if(hasExtension(attachment.filename, ["mid", "midi"]))
+		if(hasExtension(attachment.name, ["mid", "midi"]))
 		{
 			saveScratchMidi(attachment, message.author, message.guild, (errorCallback) => {
 				giveMidiFile(message, () => {});
@@ -1295,7 +1296,7 @@ function requestMidiFile(code, args, message)
 				sendBotString("onCorruptMidiFile", (msg) => reply(message, msg));
 			});
 		}
-		else if(hasExtension(attachment.filename, ["ly"]))
+		else if(hasExtension(attachment.name, ["ly"]))
 		{
 			saveAttachedLilyPondFile(attachment, message.author, message.guild, (errorCallback) => {
 				convertToScratchMidi(message.author, message.guild, (errorCallback) => {
@@ -1334,25 +1335,27 @@ function playTune(code, args, message)
 		const attachment = message.attachments.first();
 		if(attachment)
 		{
-			if(hasExtension(attachment.filename, ["mid", "midi"]))
+			if(hasExtension(attachment.name, ["mid", "midi"]))
 			{
 				saveScratchMidi(attachment, message.author, message.guild, (errorCallback) => {
-					renderScratchMidi(message.author, message.guild, (errorCallback) => {
+					sendBotString("onMidi", (msg) => reply(message, msg));
+            renderScratchMidi(message.author, message.guild, (errorCallback) => {
 						doPlay(message);
 					}, errorCallback);
 					// then convert it to sheets incase someone wants it
-					convertScratchMidiToLilyPondFile(message.author, message.guild, (errorCallback) => {
-						renderScratchSheetMusic(message.author, message.guild, (errorCallback) => {}, errorCallback);
-					}, errorCallback);
+					//convertScratchMidiToLilyPondFile(message.author, message.guild, (errorCallback) => {
+          //renderScratchSheetMusic(message.author, message.guild, (errorCallback) => {}, errorCallback);
+          //}, errorCallback);
 				}, (error) => {
 					console.error(error);
 					sendBotString("onCorruptMidiFile", (msg) => reply(message, msg));
 				});
 			}
-			else if(hasExtension(attachment.filename, ["ly"]))
+			else if(hasExtension(attachment.name, ["ly"]))
 			{
 				saveAttachedLilyPondFile(attachment, message.author, message.guild, (errorCallback) => {
 					convertToScratchMidi(message.author, message.guild, (errorCallback) => {
+					  sendBotString("onMidi", (msg) => reply(message, msg));
 						renderScratchMidi(message.author, message.guild, (errorCallback) => {
 							doPlay(message);
 						}, errorCallback);
@@ -1569,15 +1572,15 @@ const client = new discord.Client();
 // once its all connected and good to go
 client.on("ready", () => {
 	console.log(`Logged in as ${client.user.tag}!`);
-	console.log(`Currently a part of ${client.guilds.size} guilds:\n${client.guilds.map(guild => {
+	console.log(`Currently a part of ${client.guilds.size} guilds:\n${client.guilds.cache.map(guild => {
 		return `-> ${guild.name}`;
 	}).join("\n")}`);
 
 	// set the discord presence to show how to get help
-	client.user.setGame(`${config.trigger}help`);
+  client.user.setActivity(`${config.trigger}help`);
 
 	// update discordbots.org stats
-	postStats();
+	//postStats();
 });
 
 // when bot is added to a guild
@@ -1586,7 +1589,7 @@ client.on("guildCreate", guild => {
 	console.log(`Now a part of ${client.guilds.size} guilds!`);
 
 	// update discordbots.org stats
-	postStats();
+	//postStats();
 });
 
 // when bot is removed from a guild
@@ -1595,7 +1598,7 @@ client.on("guildDelete", guild => {
 	console.log(`Now a part of ${client.guilds.size} guilds!`);
 
 	// update discordbots.org stats
-	postStats();
+	//postStats();
 });
 
 // on message recieve
