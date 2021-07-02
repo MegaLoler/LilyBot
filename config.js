@@ -39,7 +39,7 @@ config.framework = `discord.js ${discord.version}`;
 config.delay = 500;
 
 // links
-const inviteLink = "https://discordapp.com/oauth2/authorize?client_id=366712156898590720&scope=bot&permissions=0";
+const inviteLink = "https://discordapp.com/oauth2/authorize?client_id=614154265937707215&scope=bot&permissions=0";
 const githubLink = "https://github.com/MegaLoler/LilyBot";
 const supportLink = "https://discord.gg/uufzzPg";
 
@@ -216,7 +216,7 @@ config.botStrings = {
 	},
 	// when you invite it to a voice channel but you aren't in one
 	"onJoinVoiceChannelFail": {
-		string: "You should go into a voice channel first, silly! :3",
+		string: "uwu this is borked lol",
 		enabled: true,
 	},
 	// when someone tries to get it to join a private call
@@ -352,6 +352,16 @@ config.botStrings = {
 	// when you ask for listing of commands
 	"onCommandListingRequest": {
 		string: "Here's all the commands you can use with me and all the aliases I will respond to:",
+		enabled: true,
+	},
+	// when you ask for listing of commands
+	"onPlay": {
+		string: "Playing now!",
+		enabled: true,
+	},
+	// when you ask for listing of commands
+	"onMidi": {
+		string: "Coming right up!...",
 		enabled: true,
 	},
 };
